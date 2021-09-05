@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 
 namespace SwapLogCor
 {
-    public class DataService
+    public class DataService : IDataService
     {
         private readonly ILogger<DataService> _log;
         private readonly IConfiguration _config;
