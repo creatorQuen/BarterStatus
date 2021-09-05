@@ -1,5 +1,10 @@
 ﻿using Serilog;
 using System;
+using System.IO;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+//using Microsoft.Extensions.Configuration.FileExtensions;
 
 namespace SwapLogCor
 {
@@ -7,28 +12,40 @@ namespace SwapLogCor
     {
         static void Main(string[] args)
         {
+            var host = AppStartup();
+
+            var dataService = ActivatorUtilities.CreateInstance<DataService>(host.Services);
+
+            dataService.Connect();
+        }
+
+        static void ConfigSetup(IConfigurationBuilder builder)
+        {
+            builder.SetBasePath(Directory.GetCurrentDirectory())
+                    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                    .AddEnvironmentVariables();
+        }
+
+        static IHost AppStartup()
+        {
+            var builder = new ConfigurationBuilder();
+            ConfigSetup(builder);
+
             Log.Logger = new LoggerConfiguration()
-               .MinimumLevel.Debug()
-               .WriteTo.Console()
-               .WriteTo.File("logs/myapp.txt", rollingInterval: RollingInterval.Day)
-               .CreateLogger();
+                .ReadFrom.Configuration(builder.Build())
+                .Enrich.FromLogContext()
+                .WriteTo.Console()
+                .CreateLogger();
 
-            Log.Information("Hello, world!");
 
-            int a = 10, b = 0;
-            try
-            {
-                Log.Debug("Dividing {A} by {B}", a, b);
-                Console.WriteLine(a / b);
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Something went wrong");
-            }
-            finally
-            {
-                Log.CloseAndFlush();
-            }
+            var host = Host.CreateDefaultBuilder()
+            .ConfigureServices((context, services) => {
+                services.AddTransient<IDataService, DataService>();
+            })
+            .UseSerilog()
+            .Build();
+
+            return host;
         }
     }
 }
