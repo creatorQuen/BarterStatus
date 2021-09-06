@@ -1,12 +1,10 @@
 ﻿using Microsoft.Extensions.Options;
-using RestSharp;
 using SwapLogCor.Models;
 using SwapLogCor.Settings;
+using SwapLogCor.Constants;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using SwapLogCor.Enums;
 
 namespace SwapLogCor.Services
 {
@@ -21,33 +19,37 @@ namespace SwapLogCor.Services
 
         public void Process()
         {
-            //Console.WriteLine("yesssssssss");
-            //get all leads
-            //for each lead get all transactions by period
-            //delete withdraws
-            //check conditions
-            //
+            var leads = _requests.GetAllLeads();
+            foreach(var lead in leads)
+            {
+                _requests.SetVipStatus(lead.Id, CheckOneLead(lead));
+            }
         }
 
         public bool CheckOneLead(LeadShortModel lead)
         {
-            if (CheckOperationsCondition(lead) ||
-            CheckBalanceCondition(lead) ||
-            CheckBirthdayCondition(lead.BirthDate)) return true;
+            if (CheckBirthdayCondition(lead.BirthDate)||
+                CheckOperationsCondition(lead) ||
+                CheckBalanceCondition(lead)) return true;
             return false;
         }
 
         public bool CheckOperationsCondition(LeadShortModel lead)
         {
             List<DateTime> dates = new List<DateTime>();
-            var transactions = _requests.GetTransactionsByPeriod(lead.Id, Constants.PERIOD_FOR_CHECK_TRANSACTIONS_FOR_VIP);
+            PeriodModel period = new PeriodModel
+            {
+                To = DateTime.Now.ToString(),
+                From = DateTime.Now.Subtract(Const.PERIOD_FOR_CHECK_TRANSACTIONS_FOR_VIP).ToString()
+            };
+            var transactions = _requests.GetTransactionsByPeriod(lead, period);
             foreach (var tr in transactions)
             {
-                if ((int)tr.TransactionType == 2)
+                if (tr.TransactionType == TransactionType.Withdraw)
                 {
                     transactions.Remove(tr);
                 }
-                if ((int)tr.TransactionType == 3)
+                if (tr.TransactionType == TransactionType.Transfer)
                 {
                     if (dates.Contains(tr.Date))
                     {
@@ -60,7 +62,7 @@ namespace SwapLogCor.Services
                 }
             }
 
-            if (transactions.Count >= Constants.COUNT_TRANSACTIONS_IN_PERIOD_FOR_VIP) return true;
+            if (transactions.Count >= Const.COUNT_TRANSACTIONS_IN_PERIOD_FOR_VIP) return true;
             return false;
         }
 
@@ -68,19 +70,22 @@ namespace SwapLogCor.Services
         {
             decimal sumDeposit = 0;
             decimal sumWithdraw = 0;
-            var transactions = _requests.GetTransactionsByPeriod(lead.Id, 30);
+            PeriodModel period = new PeriodModel {
+                To = DateTime.Now.ToString(), 
+                From = DateTime.Now.Subtract(Const.PERIOD_FOR_CHECK_SUM_FOR_VIP).ToString() };
+            var transactions = _requests.GetTransactionsByPeriod(lead, period);
             foreach (var tr in transactions)
             {
-                if ((int)tr.TransactionType == 1)
+                if (tr.TransactionType == TransactionType.Deposit)
                 {
                     sumDeposit += tr.Amount;
                 }
-                if ((int)tr.TransactionType == 2)
+                if (tr.TransactionType == TransactionType.Withdraw)
                 {
                     sumWithdraw += tr.Amount;
                 }
             }
-            if (Math.Abs(sumWithdraw) > sumDeposit + Constants.SUM_DIFFERENCE_DEPOSIT_AND_WITHRAW_FOR_VIP) return true;
+            if (Math.Abs(sumWithdraw) > sumDeposit + Const.SUM_DIFFERENCE_DEPOSIT_AND_WITHRAW_FOR_VIP) return true;
             return false;
         }
 
@@ -88,7 +93,7 @@ namespace SwapLogCor.Services
         {
             bDay = bDay.Substring(5, 5);
             var date = DateTime.ParseExact(bDay, "MM.dd", null);
-            if (date <= DateTime.Now && date.AddDays(Constants.COUNT_DAY_AFTER_BDAY_FOR_VIP) > DateTime.Now) return true;
+            if (date <= DateTime.Now && date.AddDays(Const.COUNT_DAY_AFTER_BDAY_FOR_VIP) > DateTime.Now) return true;
             return false;
         }
     }

@@ -8,6 +8,7 @@ namespace SwapLogCor.Settings
 {
     public class AppSettings
     {
-        public string CRM_GET_TRANSACTION { get; set; }
+        public string CRM_URL { get; set; }
+
     }
 }
