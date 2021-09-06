@@ -1,5 +1,7 @@
-﻿using RestSharp;
+﻿using Microsoft.Extensions.Options;
+using RestSharp;
 using SwapLogCor.Models;
+using SwapLogCor.Settings;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,21 +13,15 @@ namespace SwapLogCor.Services
     public class SetVipService : ISetVipService
     {
         private IRequestsSender _requests;
-        private string _url;
-        private RestClient _client;
-        private RestRequest _request;
-        private IRestResponse<string> _response;
 
-        public SetVipService()
+        public SetVipService(IOptions<AppSettings> options, IRequestsSender sender)
         {
-            _client = new RestClient("localhost");
-            _request = new RestRequest(Method.GET);
+            _requests = sender;
         }
-
-        
 
         public void Process()
         {
+            //Console.WriteLine("yesssssssss");
             //get all leads
             //for each lead get all transactions by period
             //delete withdraws
@@ -33,9 +29,12 @@ namespace SwapLogCor.Services
             //
         }
 
-        public void CheckOneLead(LeadShortModel lead)
+        public bool CheckOneLead(LeadShortModel lead)
         {
-            CheckBirthdayCondition(lead.BirthDate);
+            if (CheckOperationsCondition(lead) ||
+            CheckBalanceCondition(lead) ||
+            CheckBirthdayCondition(lead.BirthDate)) return true;
+            return false;
         }
 
         public bool CheckOperationsCondition(LeadShortModel lead)

@@ -1,8 +1,13 @@
-﻿namespace SwapLogCor.Services
+﻿using SwapLogCor.Models;
+
+namespace SwapLogCor.Services
 {
     public interface ISetVipService
     {
-        void GetTransactionsByPeriod(int id);
+        bool CheckBalanceCondition(LeadShortModel lead);
+        bool CheckBirthdayCondition(string bDay);
+        bool CheckOneLead(LeadShortModel lead);
+        bool CheckOperationsCondition(LeadShortModel lead);
         void Process();
     }
 }

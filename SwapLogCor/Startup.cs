@@ -13,11 +13,11 @@ namespace SwapLogCor
         {
             _configuration = new ConfigurationBuilder()
                 .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json")
+                //.AddJsonFile("appsettings.json")
                 .AddEnvironmentVariables()
                 .Build();
             _serviceProvider = new ServiceCollection()
-                //.ConfigureServices(_configuration)
+                .ConfigureServices(_configuration)
                 .BuildServiceProvider();
         }
 

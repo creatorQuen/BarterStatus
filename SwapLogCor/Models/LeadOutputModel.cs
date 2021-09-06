@@ -18,8 +18,6 @@ namespace SwapLogCor.Models
         public string Password { get; set; }
         public bool IsDeleted { get; set; }
         public string BirthDate { get; set; }
-        public Role Role { get; set; }
-        public CityOutputModel City { get; set; }
         public List<AccountOutputModel> Accounts { get; set; }
     }
 }

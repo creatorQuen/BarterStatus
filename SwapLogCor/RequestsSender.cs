@@ -15,6 +15,11 @@ namespace SwapLogCor
         private readonly RestClient _client;
         private readonly RequestHelper _requestHelper;
 
+        public RequestsSender()
+        {
+
+        }
+
         public List<LeadShortModel> GetAllLeads()
         {
             var request = _requestHelper.CreateGetRequest("");
@@ -36,9 +41,9 @@ namespace SwapLogCor
 
         }
 
-        public List<TransactionBusinessModel> GetTransactionsByPeriod(int id, int period)
+        public List<TransactionBusinessModel> GetTransactionsByPeriod(int leadId, int period)
         {
-            var getTransactions = new RestRequest(string.Format(Constants.CRM_TRANSACTIONS_BY_PERIOD, id), Method.GET);
+            var getTransactions = new RestRequest(string.Format(Constants.CRM_TRANSACTIONS_BY_PERIOD, leadId), Method.GET);
             var response = _client.Execute<string>(getTransactions);
             var transactions = response.Data;
             return new List<TransactionBusinessModel>();
