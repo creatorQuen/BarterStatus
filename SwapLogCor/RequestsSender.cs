@@ -10,25 +10,24 @@ using System.Threading.Tasks;
 
 namespace SwapLogCor
 {
-    public class RequestsSender
+    public class RequestsSender : IRequestsSender
     {
         private readonly RestClient _client;
         private readonly RequestHelper _requestHelper;
 
-        public List<LeadShortModel> GetAllLeadsId()
+        public List<LeadShortModel> GetAllLeads()
         {
             var request = _requestHelper.CreateGetRequest("");
             var response = _client.Execute<string>(request);
 
-            var result = JsonConvert.DeserializeObject(response.Data);
+            var result = JsonConvert.DeserializeObject<List<LeadShortModel>>(response.Data);
 
-        
-
-            return new List<LeadShortModel>();
+            return result;
         }
 
         public List<TransactionBusinessModel> GetTransactionsWithoutWithdrawsByLead(LeadShortModel lead)
         {
+
             return new List<TransactionBusinessModel>();
         }
 
@@ -37,6 +36,12 @@ namespace SwapLogCor
 
         }
 
-
+        public List<TransactionBusinessModel> GetTransactionsByPeriod(int id, int period)
+        {
+            var getTransactions = new RestRequest(string.Format(Constants.CRM_TRANSACTIONS_BY_PERIOD, id), Method.GET);
+            var response = _client.Execute<string>(getTransactions);
+            var transactions = response.Data;
+            return new List<TransactionBusinessModel>();
+        }
     }
 }
