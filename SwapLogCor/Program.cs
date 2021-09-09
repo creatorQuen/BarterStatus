@@ -1,8 +1,8 @@
 ﻿using Serilog;
-using SwapLogCor.Services;
+using BarterStatus.Services;
 using System;
 
-namespace SwapLogCor
+namespace BarterStatus
 {
     class Program
     {

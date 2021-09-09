@@ -1,7 +1,7 @@
-﻿using SwapLogCor.Models;
+﻿using BarterStatus.Models;
 using System.Collections.Generic;
 
-namespace SwapLogCor
+namespace BarterStatus
 {
     public interface IRequestsSender
     {

@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using SwapLogCor.Enums;
+using BarterStatus.Enums;
 
-namespace SwapLogCor.Models
+namespace BarterStatus.Models
 {
     public class TransactionBusinessModel
     {

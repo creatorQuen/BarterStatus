@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SwapLogCor.Enums
+namespace BarterStatus.Enums
 {
     public enum Currency
     {

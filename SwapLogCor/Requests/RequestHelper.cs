@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SwapLogCor.Requests
+namespace BarterStatus.Requests
 {
     public class RequestHelper
     {

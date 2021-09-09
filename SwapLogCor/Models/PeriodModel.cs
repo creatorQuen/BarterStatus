@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SwapLogCor.Models
+namespace BarterStatus.Models
 {
     public class PeriodModel
     {

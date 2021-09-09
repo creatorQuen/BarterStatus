@@ -1,6 +1,6 @@
-﻿using SwapLogCor.Models;
+﻿using BarterStatus.Models;
 
-namespace SwapLogCor.Services
+namespace BarterStatus.Services
 {
     public interface ISetVipService
     {

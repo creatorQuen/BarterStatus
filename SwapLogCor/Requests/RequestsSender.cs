@@ -1,15 +1,15 @@
 ﻿using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using RestSharp;
-using SwapLogCor.Constants;
-using SwapLogCor.Models;
-using SwapLogCor.Requests;
-using SwapLogCor.Settings;
+using BarterStatus.Constants;
+using BarterStatus.Models;
+using BarterStatus.Requests;
+using BarterStatus.Settings;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SwapLogCor
+namespace BarterStatus
 {
     public class RequestsSender : IRequestsSender
     {

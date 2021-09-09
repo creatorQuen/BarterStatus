@@ -1,6 +1,6 @@
 ﻿using RestSharp;
 
-namespace SwapLogCor.Requests
+namespace BarterStatus.Requests
 {
     public static class RequestHelperExtension
     {

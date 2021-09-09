@@ -3,7 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.IO;
 
-namespace SwapLogCor
+namespace BarterStatus
 {
     public class Startup
     {

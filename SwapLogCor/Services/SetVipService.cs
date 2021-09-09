@@ -1,12 +1,12 @@
 ﻿using Microsoft.Extensions.Options;
-using SwapLogCor.Models;
-using SwapLogCor.Settings;
-using SwapLogCor.Constants;
+using BarterStatus.Models;
+using BarterStatus.Settings;
+using BarterStatus.Constants;
 using System;
 using System.Collections.Generic;
-using SwapLogCor.Enums;
+using BarterStatus.Enums;
 
-namespace SwapLogCor.Services
+namespace BarterStatus.Services
 {
     public class SetVipService : ISetVipService
     {
@@ -28,10 +28,7 @@ namespace SwapLogCor.Services
 
         public bool CheckOneLead(LeadShortModel lead)
         {
-            if (CheckBirthdayCondition(lead.BirthDate)||
-                CheckOperationsCondition(lead) ||
-                CheckBalanceCondition(lead)) return true;
-            return false;
+            return (CheckBirthdayCondition(lead.BirthDate) || CheckOperationsCondition(lead) || CheckBalanceCondition(lead)) ;
         }
 
         public bool CheckOperationsCondition(LeadShortModel lead)
@@ -62,8 +59,7 @@ namespace SwapLogCor.Services
                 }
             }
 
-            if (transactions.Count >= Const.COUNT_TRANSACTIONS_IN_PERIOD_FOR_VIP) return true;
-            return false;
+            return (transactions.Count >= Const.COUNT_TRANSACTIONS_IN_PERIOD_FOR_VIP);
         }
 
         public bool CheckBalanceCondition(LeadShortModel lead)
@@ -91,10 +87,14 @@ namespace SwapLogCor.Services
 
         public bool CheckBirthdayCondition(string bDay)
         {
-            bDay = bDay.Substring(5, 5);
-            var date = DateTime.ParseExact(bDay, "MM.dd", null);
-            if (date <= DateTime.Now && date.AddDays(Const.COUNT_DAY_AFTER_BDAY_FOR_VIP) > DateTime.Now) return true;
-            return false;
+            var _dateMonthAndDay = "MM.dd";
+            //bDay = bDay.Substring(5, 5);
+            DateTime birthDay = Convert.ToDateTime(bDay);
+            var birth = birthDay.ToString(_dateMonthAndDay);
+            var date = Convert.ToDateTime(birth);
+
+            //var date = DateTime.ParseExact(bDay, "MM.dd", null);
+            return (date <= DateTime.Now && date.AddDays(Const.COUNT_DAY_AFTER_BDAY_FOR_VIP) > DateTime.Now);
         }
     }
 }

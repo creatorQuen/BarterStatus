@@ -1,14 +1,14 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using SwapLogCor.Config;
-using SwapLogCor.Settings;
+using BarterStatus.Config;
+using BarterStatus.Settings;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SwapLogCor
+namespace BarterStatus
 {
     public static class ServiceConfigurator
     {

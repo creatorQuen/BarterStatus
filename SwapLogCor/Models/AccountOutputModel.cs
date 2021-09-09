@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using SwapLogCor.Enums;
+using BarterStatus.Enums;
 
-namespace SwapLogCor.Models
+namespace BarterStatus.Models
 {
     public class AccountOutputModel
     {
