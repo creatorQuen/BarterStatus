@@ -2,6 +2,7 @@
 using Newtonsoft.Json;
 using RestSharp;
 using SwapLogCor.Constants;
+using SwapLogCor.Enums;
 using SwapLogCor.Models;
 using SwapLogCor.Requests;
 using SwapLogCor.Settings;
@@ -24,7 +25,7 @@ namespace SwapLogCor
 
         public List<LeadShortModel> GetAllLeads()
         {
-            var request = _requestHelper.CreateGetRequest(Endpoints.GET_ALL_LEADS);
+            var request = _requestHelper.CreateGetRequest(Endpoints.GetAllLeadsEndpoint);
             var response = _client.Execute<string>(request);
 
             var result = JsonConvert.DeserializeObject<List<LeadShortModel>>(response.Data);
@@ -39,7 +40,7 @@ namespace SwapLogCor
             foreach(var acc in lead.Accounts)
             {
                 period.AccountId = acc;
-                var request = _requestHelper.CreatePostRequest(Endpoints.GET_TRANSACTIONS_BY_PERIOD, period);
+                var request = _requestHelper.CreatePostRequest(Endpoints.GetTransactionByPeriodEndpoint, period);
                 var response = _client.Execute<string>(request);
                 var result = JsonConvert.DeserializeObject<List<TransactionBusinessModel>>(response.Data);
                 transactionsList.Union(result);
@@ -47,9 +48,12 @@ namespace SwapLogCor
             return transactionsList;
         }
 
-        public void SetVipStatus(int leadId, bool status)
+        public LeadOutputModel ChangeStatus(int leadId, Role status)
         {
-
+            var endpoint = String.Format(Endpoints.ChangeStatusEndpoint, leadId, status);
+            var request = _requestHelper.CreatePutRequest(endpoint);
+            var response = _client.Execute<LeadOutputModel>(request);
+            return response.Data;
         }
     }
 }

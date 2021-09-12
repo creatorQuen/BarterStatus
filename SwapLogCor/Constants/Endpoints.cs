@@ -8,9 +8,10 @@ namespace SwapLogCor.Constants
 {
     public class Endpoints
     {
-        public const string GET_TRANSACTIONS_BY_PERIOD = "/api/Transaction";
-        public const string GET_ALL_LEADS = "/api/transaction";
-        public const string SET_VIP_STATUS = "/api/Transaction";
+        public const string GetTransactionByPeriodEndpoint = "/api/Transaction";
+        public const string GetAllLeadsEndpoint = "/api/transaction";
+        public const string GetAllLeadsByFilterEndpoint = "/api/Lead/filter";
+        public const string ChangeStatusEndpoint = "/api/Lead/{id}/role/{role}";
         public const string AddTransferEndpoint = "/api/Transaction";
     }
 }

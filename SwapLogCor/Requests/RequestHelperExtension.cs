@@ -14,5 +14,10 @@ namespace SwapLogCor.Requests
             var request = requestHelper.CreateRequest(Method.POST, endPoint);
             return request.AddJsonBody(postData);
         }
+
+        public static IRestRequest CreatePutRequest(this RequestHelper requestHelper, string endPoint)
+        {
+            return requestHelper.CreateRequest(Method.PUT, endPoint);
+        }
     }
 }

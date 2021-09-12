@@ -7,6 +7,6 @@ namespace SwapLogCor
     {
         List<LeadShortModel> GetAllLeads();
         List<TransactionBusinessModel> GetTransactionsByPeriod(LeadShortModel lead, PeriodModel period);
-        public void SetVipStatus(int leadId, bool status);
+        LeadOutputModel ChangeStatus(int leadId, bool status);
     }
 }
