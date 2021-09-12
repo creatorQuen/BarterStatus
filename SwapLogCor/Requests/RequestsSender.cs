@@ -36,18 +36,9 @@ namespace SwapLogCor
 
         public List<AccountBusinessModel> GetTransactionsByPeriod(TimeBasedAcquisitionInputModel model)
         {
-            List<AccountBusinessModel> transactionsList = new List<AccountBusinessModel>();
-            var request = _requestHelper.CreatePostRequest(Endpoints.GET_TRANSACTIONS_BY_PERIOD, model);
-
-            foreach (var acc in lead.Accounts)
-            {
-                period.AccountId = acc;
-                var request = _requestHelper.CreatePostRequest(Endpoints.GetTransactionByPeriodEndpoint, period);
-                var response = _client.Execute<string>(request);
-                var result = JsonConvert.DeserializeObject<List<TransactionBusinessModel>>(response.Data);
-                transactionsList.Union(result);
-            }
-            return transactionsList;
+            var request = _requestHelper.CreatePostRequest(Endpoints.GetTransactionByPeriodEndpoint, model);
+            var response = _client.Execute<List<AccountBusinessModel>>(request);
+            return response.Data;
         }
 
         public LeadOutputModel ChangeStatus(int leadId, Role status)

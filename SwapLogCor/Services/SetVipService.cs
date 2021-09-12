@@ -5,6 +5,7 @@ using SwapLogCor.Constants;
 using System;
 using System.Collections.Generic;
 using SwapLogCor.Enums;
+using System.Linq;
 
 namespace SwapLogCor.Services
 {
@@ -22,7 +23,14 @@ namespace SwapLogCor.Services
             var leads = _requests.GetAllLeads(); //get leads by fi;ters (roles 1 2)
             foreach(var lead in leads)
             {
-                _requests.SetVipStatus(lead.Id, CheckOneLead(lead));
+                if(CheckOneLead(lead))
+                {
+                    _requests.ChangeStatus(lead.Id, Role.Vip);
+                }
+                else
+                {
+                    _requests.ChangeStatus(lead.Id, Role.Regular);
+                }
             }
         }
 
@@ -34,56 +42,41 @@ namespace SwapLogCor.Services
             return false;
         }
 
+
         public bool CheckOperationsCondition(LeadShortModel lead)
         {
-            List<DateTime> dates = new List<DateTime>();
-            TimeBasedAcquisitionInputModel period = new TimeBasedAcquisitionInputModel
-            {
-                To = DateTime.Now.ToString(),
-                From = DateTime.Now.AddDays(- Const.PERIOD_FOR_CHECK_TRANSACTIONS_FOR_VIP).ToString()
-            };
-            var transactions = _requests.GetTransactionsByPeriod(lead, period);
             int transactionsCount = 0;
-            foreach (var tr in transactions)
+            foreach (var accountId in lead.Accounts)
             {
-
-
-
-                if (transactionsCount < Const.COUNT_TRANSACTIONS_IN_PERIOD_FOR_VIP) break;
-            }
-
-            foreach (var tr in transactions)
-            {
-                if (tr.TransactionType == TransactionType.Withdraw)
+                TimeBasedAcquisitionInputModel period = new TimeBasedAcquisitionInputModel
                 {
-                    transactions.Remove(tr);
-                }
-                if (tr.TransactionType == TransactionType.Transfer)
-                {
-                    if (dates.Contains(tr.Date))
-                    {
-                        transactions.Remove(tr);
-                    }
-                    else
-                    {
-                        dates.Add(tr.Date);
-                    }
-                }
-            }
+                    To = DateTime.Now.ToString(),
+                    From = DateTime.Now.AddDays(-Const.PERIOD_FOR_CHECK_TRANSACTIONS_FOR_VIP).ToString(),
+                    AccountId = accountId
+                };
+                var accountsWithTransactions = _requests.GetTransactionsByPeriod(period);
 
-           return transactions.Count >= Const.COUNT_TRANSACTIONS_IN_PERIOD_FOR_VIP;
+                transactionsCount += accountsWithTransactions[0].Transactions.
+                    Where(t => t.TransactionType == TransactionType.Deposit).Count();
+                transactionsCount += accountsWithTransactions[0].Transfers.Count();
+
+                if (transactionsCount > Const.COUNT_TRANSACTIONS_IN_PERIOD_FOR_VIP) return true;
+            }
+            return false;
         }
 
         public bool CheckBalanceCondition(LeadShortModel lead)
         {
             decimal sumDeposit = 0;
             decimal sumWithdraw = 0;
-            TimeBasedAcquisitionInputModel period = new TimeBasedAcquisitionInputModel 
+            TimeBasedAcquisitionInputModel model = new TimeBasedAcquisitionInputModel 
             {
                 To = DateTime.Now.ToString(), 
-                From = DateTime.Now.AddDays(- Const.PERIOD_FOR_CHECK_SUM_FOR_VIP).ToString() 
+                From = DateTime.Now.AddDays(- Const.PERIOD_FOR_CHECK_SUM_FOR_VIP).ToString(),
+                AccountId = lead.Id
             };
-            var transactions = _requests.GetTransactionsByPeriod(lead, period);
+            var transactions = _requests.GetTransactionsByPeriod(model);
+
             foreach (var tr in transactions)
             {
                 if (tr.TransactionType == TransactionType.Deposit)
@@ -106,5 +99,6 @@ namespace SwapLogCor.Services
             if (date <= DateTime.Now && date.AddDays(Const.COUNT_DAY_AFTER_BDAY_FOR_VIP) > DateTime.Now) return true;
             return false;
         }
+
     }
 }
