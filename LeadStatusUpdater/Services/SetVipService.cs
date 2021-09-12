@@ -12,7 +12,7 @@ namespace LeadStatusUpdater.Services
     {
         private IRequestsSender _requests;
 
-        public SetVipService(IOptions<AppSettings> options, IRequestsSender sender)
+        public SetVipService(IRequestsSender sender)
         {
             _requests = sender;
         }
@@ -35,10 +35,9 @@ namespace LeadStatusUpdater.Services
 
         public bool CheckOneLead(LeadShortModel lead)
         {
-            if (CheckBirthdayCondition(lead.BirthDate) ||
+            return (CheckBirthdayCondition(lead.BirthDate) ||
                 CheckOperationsCondition(lead) ||
-                CheckBalanceCondition(lead)) return true;
-            return false;
+                CheckBalanceCondition(lead));
         }
 
 

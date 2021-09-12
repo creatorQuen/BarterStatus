@@ -1,3 +1,4 @@
+using LeadStatusUpdater.Services;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
@@ -9,11 +10,14 @@ namespace LeadStatusUpdater
     public class Worker : BackgroundService
     {
         private readonly ILogger<Worker> _logger;
+        private readonly ISetVipService _service;
+
         private int _timeSpan = 10000;
 
-        public Worker(ILogger<Worker> logger)
+        public Worker(ILogger<Worker> logger, ISetVipService service)
         {
             _logger = logger;
+            _service = service;
         }
 
         public override async Task StartAsync(CancellationToken cancellationToken)
@@ -32,6 +36,8 @@ namespace LeadStatusUpdater
         {
             while (!stoppingToken.IsCancellationRequested)
             {
+                _service.Process();
+
                 _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
                 await Task.Delay(_timeSpan, stoppingToken);
             }

@@ -15,7 +15,6 @@
     <Folder Include="Models\" />
     <Folder Include="Enum\" />
     <Folder Include="Constants\" />
-    <Folder Include="Config\" />
     <Folder Include="Settings\" />
   </ItemGroup>
 </Project>
