@@ -1,7 +1,10 @@
+using LeadStatusUpdater.Config;
 using LeadStatusUpdater.Services;
+using LeadStatusUpdater.Settings;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System;
 using System.IO;
 
 namespace LeadStatusUpdater
@@ -60,5 +63,38 @@ namespace LeadStatusUpdater
 
                      //services.AddMassTransitHostedService();
                  });
+    }
+
+
+    public static class ServiceConfigurator
+    {
+        public static IServiceCollection ConfigureServices(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.RegisterServicesConfig();
+            services.Configure<AppSettings>(configuration);
+            return services;
+        }
+    }
+
+    public class Startup
+    {
+        private IConfiguration _configuration;
+        private IServiceProvider _serviceProvider;
+        public Startup()
+        {
+            _configuration = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                //.AddJsonFile("appsettings.json")
+                .AddEnvironmentVariables()
+                .Build();
+            _serviceProvider = new ServiceCollection()
+                .ConfigureServices(_configuration)
+                .BuildServiceProvider();
+        }
+
+        public T ProvideService<T>()
+        {
+            return _serviceProvider.GetService<T>();
+        }
     }
 }
