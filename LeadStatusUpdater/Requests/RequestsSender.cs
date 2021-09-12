@@ -17,7 +17,7 @@ namespace LeadStatusUpdater.Requests
 
         public RequestsSender(IOptions<AppSettings> options)
         {
-            _client = new RestClient();
+            _client = new RestClient(options.Value.ConnectionString);
             _requestHelper = new RequestHelper();
         }
 

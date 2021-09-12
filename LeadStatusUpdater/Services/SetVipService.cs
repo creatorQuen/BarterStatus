@@ -35,9 +35,9 @@ namespace LeadStatusUpdater.Services
 
         public bool CheckOneLead(LeadShortModel lead)
         {
-            return (CheckBirthdayCondition(lead.BirthDate) ||
+            return (//CheckBirthdayCondition(lead.BirthDate) ||
                 CheckOperationsCondition(lead) ||
-                CheckBalanceCondition(lead));
+                CheckBalanceCondition(lead);
         }
 
 
@@ -54,9 +54,9 @@ namespace LeadStatusUpdater.Services
                 };
                 var accountsWithTransactions = _requests.GetTransactionsByPeriod(period);
 
-                transactionsCount += accountsWithTransactions[0].Transactions.
+                transactionsCount += accountsWithTransactions.FirstOrDefault().Transactions.
                     Where(t => t.TransactionType == TransactionType.Deposit).Count();
-                transactionsCount += accountsWithTransactions[0].Transfers.Count();
+                transactionsCount += accountsWithTransactions.FirstOrDefault().Transfers.Count();
 
                 if (transactionsCount > Const.COUNT_TRANSACTIONS_IN_PERIOD_FOR_VIP) return true;
             }

@@ -31,8 +31,9 @@ namespace LeadStatusUpdater
             Host.CreateDefaultBuilder(args)
                 .ConfigureServices((hostContext, services) =>
                 {
+
                     services.AddOptions<AppSettings>()
-                            .Bind(configuration.GetSection(nameof(AppSettings)));
+                .Bind(configuration.GetSection(nameof(AppSettings)));
 
                     services.AddHostedService<Worker>();
                     services.AddTransient<ISetVipService, SetVipService>();
