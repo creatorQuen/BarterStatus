@@ -1,17 +1,14 @@
-﻿using Microsoft.Extensions.Options;
+﻿using LeadStatusUpdater.Constants;
+using LeadStatusUpdater.Enums;
+using LeadStatusUpdater.Models;
+using LeadStatusUpdater.Settings;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using RestSharp;
-using SwapLogCor.Constants;
-using SwapLogCor.Enums;
-using SwapLogCor.Models;
-using SwapLogCor.Requests;
-using SwapLogCor.Settings;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using RestSharp;
 
-namespace SwapLogCor
+namespace LeadStatusUpdater.Requests
 {
     public class RequestsSender : IRequestsSender
     {

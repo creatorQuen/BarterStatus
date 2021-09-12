@@ -1,13 +1,12 @@
-﻿using Microsoft.Extensions.Options;
-using SwapLogCor.Models;
-using SwapLogCor.Settings;
-using SwapLogCor.Constants;
+﻿using LeadStatusUpdater.Constants;
+using LeadStatusUpdater.Enums;
+using LeadStatusUpdater.Models;
+using LeadStatusUpdater.Settings;
+using Microsoft.Extensions.Options;
 using System;
-using System.Collections.Generic;
-using SwapLogCor.Enums;
 using System.Linq;
 
-namespace SwapLogCor.Services
+namespace LeadStatusUpdater.Services
 {
     public class SetVipService : ISetVipService
     {
@@ -21,9 +20,9 @@ namespace SwapLogCor.Services
         public void Process()
         {
             var leads = _requests.GetAllLeads(); //get leads by fi;ters (roles 1 2)
-            foreach(var lead in leads)
+            foreach (var lead in leads)
             {
-                if(CheckOneLead(lead))
+                if (CheckOneLead(lead))
                 {
                     _requests.ChangeStatus(lead.Id, Role.Vip);
                 }
@@ -36,7 +35,7 @@ namespace SwapLogCor.Services
 
         public bool CheckOneLead(LeadShortModel lead)
         {
-            if (CheckBirthdayCondition(lead.BirthDate)||
+            if (CheckBirthdayCondition(lead.BirthDate) ||
                 CheckOperationsCondition(lead) ||
                 CheckBalanceCondition(lead)) return true;
             return false;
@@ -69,10 +68,10 @@ namespace SwapLogCor.Services
         {
             decimal sumDeposit = 0;
             decimal sumWithdraw = 0;
-            TimeBasedAcquisitionInputModel model = new TimeBasedAcquisitionInputModel 
+            TimeBasedAcquisitionInputModel model = new TimeBasedAcquisitionInputModel
             {
-                To = DateTime.Now.ToString(), 
-                From = DateTime.Now.AddDays(- Const.PERIOD_FOR_CHECK_SUM_FOR_VIP).ToString(),
+                To = DateTime.Now.ToString(),
+                From = DateTime.Now.AddDays(-Const.PERIOD_FOR_CHECK_SUM_FOR_VIP).ToString(),
                 AccountId = lead.Id
             };
             var transactions = _requests.GetTransactionsByPeriod(model);
