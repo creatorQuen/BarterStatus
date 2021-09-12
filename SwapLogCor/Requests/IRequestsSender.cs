@@ -6,7 +6,7 @@ namespace SwapLogCor
     public interface IRequestsSender
     {
         List<LeadShortModel> GetAllLeads();
-        List<TransactionBusinessModel> GetTransactionsByPeriod(LeadShortModel lead, PeriodModel period);
         LeadOutputModel ChangeStatus(int leadId, bool status);
+        List<TransactionBusinessModel> GetTransactionsByPeriod(LeadShortModel lead, TimeBasedAcquisitionInputModel period);
     }
 }

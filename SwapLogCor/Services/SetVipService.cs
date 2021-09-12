@@ -19,7 +19,7 @@ namespace SwapLogCor.Services
 
         public void Process()
         {
-            var leads = _requests.GetAllLeads();
+            var leads = _requests.GetAllLeads(); //get leads by fi;ters (roles 1 2)
             foreach(var lead in leads)
             {
                 _requests.SetVipStatus(lead.Id, CheckOneLead(lead));
@@ -37,12 +37,21 @@ namespace SwapLogCor.Services
         public bool CheckOperationsCondition(LeadShortModel lead)
         {
             List<DateTime> dates = new List<DateTime>();
-            PeriodModel period = new PeriodModel
+            TimeBasedAcquisitionInputModel period = new TimeBasedAcquisitionInputModel
             {
                 To = DateTime.Now.ToString(),
-                From = DateTime.Now.Subtract(Const.PERIOD_FOR_CHECK_TRANSACTIONS_FOR_VIP).ToString()
+                From = DateTime.Now.AddDays(- Const.PERIOD_FOR_CHECK_TRANSACTIONS_FOR_VIP).ToString()
             };
             var transactions = _requests.GetTransactionsByPeriod(lead, period);
+            int transactionsCount = 0;
+            foreach (var tr in transactions)
+            {
+
+
+
+                if (transactionsCount < Const.COUNT_TRANSACTIONS_IN_PERIOD_FOR_VIP) break;
+            }
+
             foreach (var tr in transactions)
             {
                 if (tr.TransactionType == TransactionType.Withdraw)
@@ -62,17 +71,18 @@ namespace SwapLogCor.Services
                 }
             }
 
-            if (transactions.Count >= Const.COUNT_TRANSACTIONS_IN_PERIOD_FOR_VIP) return true;
-            return false;
+           return transactions.Count >= Const.COUNT_TRANSACTIONS_IN_PERIOD_FOR_VIP;
         }
 
         public bool CheckBalanceCondition(LeadShortModel lead)
         {
             decimal sumDeposit = 0;
             decimal sumWithdraw = 0;
-            PeriodModel period = new PeriodModel {
+            TimeBasedAcquisitionInputModel period = new TimeBasedAcquisitionInputModel 
+            {
                 To = DateTime.Now.ToString(), 
-                From = DateTime.Now.Subtract(Const.PERIOD_FOR_CHECK_SUM_FOR_VIP).ToString() };
+                From = DateTime.Now.AddDays(- Const.PERIOD_FOR_CHECK_SUM_FOR_VIP).ToString() 
+            };
             var transactions = _requests.GetTransactionsByPeriod(lead, period);
             foreach (var tr in transactions)
             {

@@ -34,10 +34,12 @@ namespace SwapLogCor
         }
 
 
-        public List<TransactionBusinessModel> GetTransactionsByPeriod(LeadShortModel lead, PeriodModel period)
+        public List<AccountBusinessModel> GetTransactionsByPeriod(TimeBasedAcquisitionInputModel model)
         {
-            List<TransactionBusinessModel> transactionsList = new List<TransactionBusinessModel>();
-            foreach(var acc in lead.Accounts)
+            List<AccountBusinessModel> transactionsList = new List<AccountBusinessModel>();
+            var request = _requestHelper.CreatePostRequest(Endpoints.GET_TRANSACTIONS_BY_PERIOD, model);
+
+            foreach (var acc in lead.Accounts)
             {
                 period.AccountId = acc;
                 var request = _requestHelper.CreatePostRequest(Endpoints.GetTransactionByPeriodEndpoint, period);
