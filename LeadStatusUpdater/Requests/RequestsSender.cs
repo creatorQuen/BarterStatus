@@ -21,14 +21,11 @@ namespace LeadStatusUpdater.Requests
             _requestHelper = new RequestHelper();
         }
 
-        public List<LeadShortModel> GetAllLeads()
+        public List<LeadOutputModel> GetAllLeads()
         {
             var request = _requestHelper.CreateGetRequest(Endpoints.GetAllLeadsEndpoint);
-            var response = _client.Execute<string>(request);
-
-            var result = JsonConvert.DeserializeObject<List<LeadShortModel>>(response.Data);
-
-            return result;
+            var response = _client.Execute<List<LeadOutputModel>>(request);
+            return response.Data;
         }
 
 

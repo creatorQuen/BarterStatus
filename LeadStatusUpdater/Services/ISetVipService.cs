@@ -4,10 +4,10 @@ namespace LeadStatusUpdater.Services
 {
     public interface ISetVipService
     {
-        bool CheckBalanceCondition(LeadShortModel lead);
+        bool CheckBalanceCondition(LeadOutputModel lead);
         bool CheckBirthdayCondition(string bDay);
-        bool CheckOneLead(LeadShortModel lead);
-        bool CheckOperationsCondition(LeadShortModel lead);
+        bool CheckOneLead(LeadOutputModel lead);
+        bool CheckOperationsCondition(LeadOutputModel lead);
         void Process();
     }
 }

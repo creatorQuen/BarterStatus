@@ -1,8 +1,6 @@
 ﻿using LeadStatusUpdater.Constants;
 using LeadStatusUpdater.Enums;
 using LeadStatusUpdater.Models;
-using LeadStatusUpdater.Settings;
-using Microsoft.Extensions.Options;
 using System;
 using System.Linq;
 
@@ -19,51 +17,51 @@ namespace LeadStatusUpdater.Services
 
         public void Process()
         {
-            var leads = _requests.GetAllLeads(); //get leads by fi;ters (roles 1 2)
+            var leads = _requests.GetAllLeads(); //get leads by filters (roles 1 2)
             foreach (var lead in leads)
             {
-                if (CheckOneLead(lead))
-                {
-                    _requests.ChangeStatus(lead.Id, Role.Vip);
-                }
-                else
-                {
-                    _requests.ChangeStatus(lead.Id, Role.Regular);
-                }
+                var status = CheckOneLead(lead) ? Role.Vip : Role.Regular;
+                _requests.ChangeStatus(lead.Id, status);
             }
         }
 
-        public bool CheckOneLead(LeadShortModel lead)
+        public bool CheckOneLead(LeadOutputModel lead)
         {
             return (//CheckBirthdayCondition(lead.BirthDate) ||
                 CheckOperationsCondition(lead) ||
-                CheckBalanceCondition(lead);
+                CheckBalanceCondition(lead));
         }
 
 
-        public bool CheckOperationsCondition(LeadShortModel lead)
+        public bool CheckOperationsCondition(LeadOutputModel lead)
         {
             int transactionsCount = 0;
-            foreach (var accountId in lead.Accounts)
+            foreach (var account in lead.Accounts)
             {
                 TimeBasedAcquisitionInputModel period = new TimeBasedAcquisitionInputModel
                 {
                     To = DateTime.Now.ToString(),
                     From = DateTime.Now.AddDays(-Const.PERIOD_FOR_CHECK_TRANSACTIONS_FOR_VIP).ToString(),
-                    AccountId = accountId
+                    AccountId = account.Id
                 };
                 var accountsWithTransactions = _requests.GetTransactionsByPeriod(period);
 
-                transactionsCount += accountsWithTransactions.FirstOrDefault().Transactions.
+                if(! (accountsWithTransactions.FirstOrDefault().Transactions is null))
+                {
+                    transactionsCount += accountsWithTransactions.FirstOrDefault().Transactions.
                     Where(t => t.TransactionType == TransactionType.Deposit).Count();
-                transactionsCount += accountsWithTransactions.FirstOrDefault().Transfers.Count();
-
+                }
+                if(!(accountsWithTransactions.FirstOrDefault().Transfers is null))
+                {
+                    transactionsCount += accountsWithTransactions.FirstOrDefault().Transfers.Count();
+                }
+                
                 if (transactionsCount > Const.COUNT_TRANSACTIONS_IN_PERIOD_FOR_VIP) return true;
             }
             return false;
         }
 
-        public bool CheckBalanceCondition(LeadShortModel lead)
+        public bool CheckBalanceCondition(LeadOutputModel lead)
         {
             decimal sumDeposit = 0;
             decimal sumWithdraw = 0;

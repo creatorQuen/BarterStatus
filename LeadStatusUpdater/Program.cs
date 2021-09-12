@@ -11,7 +11,6 @@ namespace LeadStatusUpdater
 {
     public class Program
     {
-        //private const string _section_key = "ConnectionCRM";
         public static void Main(string[] args)
         {
             var configuration = CreateConfiguratuion();
