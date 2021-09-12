@@ -65,36 +65,4 @@ namespace LeadStatusUpdater
                  });
     }
 
-
-    public static class ServiceConfigurator
-    {
-        public static IServiceCollection ConfigureServices(this IServiceCollection services, IConfiguration configuration)
-        {
-            services.RegisterServicesConfig();
-            services.Configure<AppSettings>(configuration);
-            return services;
-        }
-    }
-
-    public class Startup
-    {
-        private IConfiguration _configuration;
-        private IServiceProvider _serviceProvider;
-        public Startup()
-        {
-            _configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                //.AddJsonFile("appsettings.json")
-                .AddEnvironmentVariables()
-                .Build();
-            _serviceProvider = new ServiceCollection()
-                .ConfigureServices(_configuration)
-                .BuildServiceProvider();
-        }
-
-        public T ProvideService<T>()
-        {
-            return _serviceProvider.GetService<T>();
-        }
-    }
 }
