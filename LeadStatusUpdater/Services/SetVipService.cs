@@ -1,6 +1,7 @@
 ﻿using LeadStatusUpdater.Constants;
 using LeadStatusUpdater.Enums;
 using LeadStatusUpdater.Models;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
 
@@ -9,10 +10,12 @@ namespace LeadStatusUpdater.Services
     public class SetVipService : ISetVipService
     {
         private IRequestsSender _requests;
+        private readonly ILogger<Worker> _logger;
 
-        public SetVipService(IRequestsSender sender)
+        public SetVipService(ILogger<Worker> logger, IRequestsSender sender)
         {
             _requests = sender;
+            _logger = logger;
         }
 
         public void Process()
@@ -24,6 +27,18 @@ namespace LeadStatusUpdater.Services
                 if (lead.Role != newRole)
                 {
                     _requests.ChangeStatus(lead.Id, newRole);
+
+                    if (newRole == Role.Vip)
+                    {
+                        _logger.LogInformation($"Vip status was given to Lead: Id[{lead.Id}], FirstName[{lead.FirstName}], LastName[{lead.LastName}], Patronymic[{lead.Patronymic}], " +
+                            $"Email:[{lead.Email}]");
+                    }
+                    else 
+                    {
+                        _logger.LogInformation($"Vip status was taken from Lead: Id[{lead.Id}], FirstName[{lead.FirstName}], LastName[{lead.LastName}], Patronymic[{lead.Patronymic}], " +
+                            $"Email:[{lead.Email}]");
+                    }
+
                 }
             });
             //foreach (var lead in leads)

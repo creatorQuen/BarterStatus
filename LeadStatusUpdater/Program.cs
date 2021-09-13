@@ -1,4 +1,5 @@
 using LeadStatusUpdater.Extensions;
+using LeadStatusUpdater.Extention;
 using LeadStatusUpdater.Requests;
 using LeadStatusUpdater.Services;
 using LeadStatusUpdater.Settings;
@@ -15,7 +16,7 @@ namespace LeadStatusUpdater
         {
             var configuration = CreateConfiguratuion();
             configuration.SetEnvironmentVariableForConfiguration();
-
+            configuration.ConfigureLogger();
             CreateHostBuilder(args, configuration).Build().Run();
         }
 
@@ -32,7 +33,7 @@ namespace LeadStatusUpdater
                 {
 
                     services.AddOptions<AppSettings>()
-                .Bind(configuration.GetSection(nameof(AppSettings)));
+                        .Bind(configuration.GetSection(nameof(AppSettings)));
 
                     services.AddHostedService<Worker>();
                     services.AddTransient<ISetVipService, SetVipService>();
