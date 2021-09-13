@@ -30,34 +30,21 @@ namespace LeadStatusUpdater.Services
                 var newRole = CheckOneLead(lead) ? Role.Vip : Role.Regular;
                 if (lead.Role != newRole)
                 {
+                   //_requests.ChangeStatus(lead.Id, newRole);
 
                     if (newRole == Role.Vip)
                     {
-                        //_logger.LogInformation($"Vip status was given to Lead: Id[{lead.Id}], FirstName[{lead.FirstName}], LastName[{lead.LastName}], Patronymic[{lead.Patronymic}], " +
-                        //    $"Email:[{lead.Email}]");
-
                         Log.Information($"Vip status was given to Lead: Id[{lead.Id}], FirstName[{lead.FirstName}], LastName[{lead.LastName}], Patronymic[{lead.Patronymic}], " +
                             $"Email:[{lead.Email}]");
                     }
                     else 
                     {
-                        //_logger.LogInformation($"Vip status was taken from Lead: Id[{lead.Id}], FirstName[{lead.FirstName}], LastName[{lead.LastName}], Patronymic[{lead.Patronymic}], " +
-                        //    $"Email:[{lead.Email}]");
-
                         Log.Information($"Vip status was taken from Lead: Id[{lead.Id}], FirstName[{lead.FirstName}], LastName[{lead.LastName}], Patronymic[{lead.Patronymic}], " +
                             $"Email:[{lead.Email}]");
                     }
 
                 }
             });
-            //foreach (var lead in leads)
-            //{
-            //    var newRole = CheckOneLead(lead) ? Role.Vip : Role.Regular;
-            //    if(lead.Role != newRole)
-            //    {
-            //        _requests.ChangeStatus(lead.Id, newRole);
-            //    }
-            //}
         }
 
         public bool CheckOneLead(LeadOutputModel lead)
@@ -130,12 +117,15 @@ namespace LeadStatusUpdater.Services
         {
             var birthDayAndMonth = new LeadBirthDateFilterModel { BirthDay = birthDay, BirthMonth = birthMonth };
 
-            string bDay = "nulll";
-            bDay = bDay.Substring(5, 5);
-            var date = DateTime.ParseExact(bDay, "MM.dd", null);
+            
+            //string bDay = "nulll";
+            //bDay = bDay.Substring(5, 5);
+            //var date = DateTime.ParseExact(bDay, "MM.dd", null);
 
 
-            return (date <= DateTime.Now && date.AddDays(Const.COUNT_DAY_AFTER_BDAY_FOR_VIP) > DateTime.Now);
+            //return (date <= DateTime.Now && date.AddDays(Const.COUNT_DAY_AFTER_BDAY_FOR_VIP) > DateTime.Now);
+
+            return false;
         }
 
     }

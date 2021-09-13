@@ -13,7 +13,7 @@ namespace LeadStatusUpdater
         private readonly ILogger<Worker> _logger;
         private readonly ISetVipService _service;
 
-        private int _timeSpan = 1000;
+        private int _timeSpan = 10000000;
 
         public Worker(ILogger<Worker> logger, ISetVipService service)
         {
