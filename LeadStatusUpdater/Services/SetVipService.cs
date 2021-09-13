@@ -17,12 +17,23 @@ namespace LeadStatusUpdater.Services
 
         public void Process()
         {
-            var leads = _requests.GetAllLeads(); //get leads by filters (roles 1 2)
-            foreach (var lead in leads)
+            var leads = _requests.GetAllLeads(); //get leads by filters (roles 2 3)
+            leads.ForEach(lead => 
             {
-                var status = CheckOneLead(lead) ? Role.Vip : Role.Regular;
-                _requests.ChangeStatus(lead.Id, status);
-            }
+                var newRole = CheckOneLead(lead) ? Role.Vip : Role.Regular;
+                if (lead.Role != newRole)
+                {
+                    _requests.ChangeStatus(lead.Id, newRole);
+                }
+            });
+            //foreach (var lead in leads)
+            //{
+            //    var newRole = CheckOneLead(lead) ? Role.Vip : Role.Regular;
+            //    if(lead.Role != newRole)
+            //    {
+            //        _requests.ChangeStatus(lead.Id, newRole);
+            //    }
+            //}
         }
 
         public bool CheckOneLead(LeadOutputModel lead)
@@ -46,12 +57,12 @@ namespace LeadStatusUpdater.Services
                 };
                 var accountsWithTransactions = _requests.GetTransactionsByPeriod(period);
 
-                if(! (accountsWithTransactions.FirstOrDefault().Transactions is null))
+                if(accountsWithTransactions.FirstOrDefault().Transactions.Count > 0)
                 {
                     transactionsCount += accountsWithTransactions.FirstOrDefault().Transactions.
                     Where(t => t.TransactionType == TransactionType.Deposit).Count();
                 }
-                if(!(accountsWithTransactions.FirstOrDefault().Transfers is null))
+                if(accountsWithTransactions.FirstOrDefault().Transfers.Count > 0)
                 {
                     transactionsCount += accountsWithTransactions.FirstOrDefault().Transfers.Count();
                 }
