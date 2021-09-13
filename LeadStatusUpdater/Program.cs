@@ -28,6 +28,7 @@ namespace LeadStatusUpdater
 
         public static IHostBuilder CreateHostBuilder(string[] args, IConfiguration configuration) =>
             Host.CreateDefaultBuilder(args)
+            .UseWindowsService()
                 .ConfigureServices((hostContext, services) =>
                 {
 

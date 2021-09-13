@@ -109,3 +109,11 @@
 2021-09-13 18:33:15.334 +03:00 [INF] Vip status was given to Lead: Id[98], FirstName[Kirill], LastName[Akhmedov], Patronymic[Mironovich], Email:[KirillAkhmedoveygniw44519@msgos.cx]
 2021-09-13 18:34:09.872 +03:00 [INF] Worker started at: 13.09.2021 18:34:09
 2021-09-13 18:34:59.342 +03:00 [INF] Vip status was given to Lead: Id[3], FirstName[Peter], LastName[Ilyin], Patronymic[Stanislavovich], Email:[PeterIlyingoeegi76071@yopmail.info]
+2021-09-13 19:16:12.377 +03:00 [INF] Worker started at: 13.09.2021 19:16:12
+2021-09-13 23:11:48.626 +03:00 [INF] Worker started at: 13.09.2021 23:11:48
+2021-09-13 23:12:58.203 +03:00 [INF] Worker started at: 13.09.2021 23:12:58
+2021-09-13 23:15:00.704 +03:00 [INF] Worker started at: 13.09.2021 23:15:00
+2021-09-13 23:17:52.267 +03:00 [INF] Worker started at: 13.09.2021 23:17:52
+2021-09-13 23:18:59.435 +03:00 [INF] Worker started at: 13.09.2021 23:18:59
+2021-09-13 23:22:45.808 +03:00 [INF] Worker started at: 13.09.2021 23:22:45
+2021-09-13 23:23:55.330 +03:00 [INF] Worker started at: 13.09.2021 23:23:55

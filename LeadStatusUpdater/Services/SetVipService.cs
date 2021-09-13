@@ -30,7 +30,7 @@ namespace LeadStatusUpdater.Services
                 var newRole = CheckOneLead(lead) ? Role.Vip : Role.Regular;
                 if (lead.Role != newRole)
                 {
-                   //_requests.ChangeStatus(lead.Id, newRole);
+                   _requests.ChangeStatus(lead.Id, newRole);
 
                     if (newRole == Role.Vip)
                     {

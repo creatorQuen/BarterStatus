@@ -42,7 +42,7 @@ namespace LeadStatusUpdater.Requests
         public LeadOutputModel ChangeStatus(int leadId, Role status)
         {
             var adminToken = SignInByEmailAndPasswordReturnToken();
-            var endpoint = String.Format(Endpoints.ChangeStatusEndpoint, leadId, status);
+            var endpoint = string.Format(Endpoints.ChangeStatusEndpoint, leadId, status);
             var request = _requestHelper.CreatePutRequest(endpoint, status, adminToken);
             var response = _client.Execute<LeadOutputModel>(request);
             return response.Data;
