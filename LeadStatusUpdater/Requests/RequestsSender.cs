@@ -3,7 +3,6 @@ using LeadStatusUpdater.Enums;
 using LeadStatusUpdater.Models;
 using LeadStatusUpdater.Settings;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using RestSharp;
 using System;
 using System.Collections.Generic;
@@ -14,11 +13,12 @@ namespace LeadStatusUpdater.Requests
     {
         private readonly RestClient _client;
         private readonly RequestHelper _requestHelper;
-        private readonly IOptions<AppSettings> options;
+        private readonly IOptions<AppSettings> _options;
 
-        public RequestsSender()
+        public RequestsSender(IOptions<AppSettings> options)
         {
-            _client = new RestClient(options.Value.ConnectionString);
+            _options = options;
+            _client = new RestClient(_options.Value.ConnectionString);
             _requestHelper = new RequestHelper();
         }
 
@@ -50,9 +50,10 @@ namespace LeadStatusUpdater.Requests
 
         public string SignInByEmailAndPasswordReturnToken()
         {
-            var postData = new AdminSignInModel { Email = options.Value.AdminEmail, Password = options.Value.AdminPassword };
+            var postData = new AdminSignInModel { Email = _options.Value.AdminEmail, Password = _options.Value.AdminPassword };
             var request = _requestHelper.CreatePostRequest(Endpoints.SignInEndpoint, postData);
-            return _client.Execute<string>(request).Data;
+            var result = _client.Execute<string>(request).Data;
+            return result;
         }
     }
 }
