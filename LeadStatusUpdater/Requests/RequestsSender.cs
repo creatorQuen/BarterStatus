@@ -14,8 +14,9 @@ namespace LeadStatusUpdater.Requests
     {
         private readonly RestClient _client;
         private readonly RequestHelper _requestHelper;
+        private readonly IOptions<AppSettings> options;
 
-        public RequestsSender(IOptions<AppSettings> options)
+        public RequestsSender()
         {
             _client = new RestClient(options.Value.ConnectionString);
             _requestHelper = new RequestHelper();
@@ -23,7 +24,8 @@ namespace LeadStatusUpdater.Requests
 
         public List<LeadOutputModel> GetAllLeads()
         {
-            var request = _requestHelper.CreateGetRequest(Endpoints.GetAllLeadsEndpoint);
+            var adminToken = SignInByEmailAndPasswordReturnToken();
+            var request = _requestHelper.CreateGetRequest(Endpoints.GetAllLeadsEndpoint, adminToken);
             var response = _client.Execute<List<LeadOutputModel>>(request);
             return response.Data;
         }
@@ -31,17 +33,26 @@ namespace LeadStatusUpdater.Requests
 
         public List<AccountBusinessModel> GetTransactionsByPeriod(TimeBasedAcquisitionInputModel model)
         {
-            var request = _requestHelper.CreatePostRequest(Endpoints.GetTransactionByPeriodEndpoint, model);
+            var adminToken = SignInByEmailAndPasswordReturnToken();
+            var request = _requestHelper.CreatePostRequest(Endpoints.GetTransactionByPeriodEndpoint, model, adminToken);
             var response = _client.Execute<List<AccountBusinessModel>>(request);
             return response.Data;
         }
 
         public LeadOutputModel ChangeStatus(int leadId, Role status)
         {
+            var adminToken = SignInByEmailAndPasswordReturnToken();
             var endpoint = String.Format(Endpoints.ChangeStatusEndpoint, leadId, status);
-            var request = _requestHelper.CreatePutRequest(endpoint);
+            var request = _requestHelper.CreatePutRequest(endpoint, status, adminToken);
             var response = _client.Execute<LeadOutputModel>(request);
             return response.Data;
+        }
+
+        public string SignInByEmailAndPasswordReturnToken()
+        {
+            var postData = new AdminSignInModel { Email = options.Value.AdminEmail, Password = options.Value.AdminPassword };
+            var request = _requestHelper.CreatePostRequest(Endpoints.SignInEndpoint, postData);
+            return _client.Execute<string>(request).Data;
         }
     }
 }

@@ -40,8 +40,8 @@ namespace LeadStatusUpdater.Services
             {
                 TimeBasedAcquisitionInputModel period = new TimeBasedAcquisitionInputModel
                 {
-                    To = DateTime.Now.ToString(),
-                    From = DateTime.Now.AddDays(-Const.PERIOD_FOR_CHECK_TRANSACTIONS_FOR_VIP).ToString(),
+                    To = DateTime.Now.ToString("dd.MM.yyyy HH:mm"),
+                    From = DateTime.Now.AddDays(-Const.PERIOD_FOR_CHECK_TRANSACTIONS_FOR_VIP).ToString("dd.MM.yyyy HH:mm"),
                     AccountId = account.Id
                 };
                 var accountsWithTransactions = _requests.GetTransactionsByPeriod(period);

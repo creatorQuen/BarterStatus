@@ -5,7 +5,9 @@
       "dotnetRunMessages": "true",
       "environmentVariables": {
         "DOTNET_ENVIRONMENT": "Development",
-        "CRM_URL": "http://localhost:49270"
+        "CRM_URL": "http://localhost:49270",
+        "ADMIN_EMAIL": "",
+        "ADMIN_PASSWORD": ""
       }
     }
   }
