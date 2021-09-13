@@ -1,6 +1,7 @@
 using LeadStatusUpdater.Services;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Serilog;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,7 +13,7 @@ namespace LeadStatusUpdater
         private readonly ILogger<Worker> _logger;
         private readonly ISetVipService _service;
 
-        private int _timeSpan = 10000;
+        private int _timeSpan = 1000;
 
         public Worker(ILogger<Worker> logger, ISetVipService service)
         {
@@ -23,11 +24,13 @@ namespace LeadStatusUpdater
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation($"Worker started at: {DateTime.Now}");
+            Log.Information($"Worker started at: {DateTime.Now}");
             await base.StartAsync(cancellationToken);
         }
 
         public override async Task StopAsync(CancellationToken cancellationToken)
         {
+            Log.Information($"Worker stopped at: {DateTime.Now}");
             _logger.LogInformation($"Worker stopped at: {DateTime.Now}");
             await base.StopAsync(cancellationToken);
         }

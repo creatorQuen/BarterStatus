@@ -1,5 +1,4 @@
 using LeadStatusUpdater.Extensions;
-using LeadStatusUpdater.Extention;
 using LeadStatusUpdater.Requests;
 using LeadStatusUpdater.Services;
 using LeadStatusUpdater.Settings;

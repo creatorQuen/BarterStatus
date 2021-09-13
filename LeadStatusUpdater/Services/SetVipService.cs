@@ -2,6 +2,7 @@
 using LeadStatusUpdater.Enums;
 using LeadStatusUpdater.Models;
 using Microsoft.Extensions.Logging;
+using Serilog;
 using System;
 using System.Linq;
 
@@ -11,6 +12,7 @@ namespace LeadStatusUpdater.Services
     {
         private IRequestsSender _requests;
         private readonly ILogger<Worker> _logger;
+        private const string _dateFormat = "MM.dd";
 
         public SetVipService(ILogger<Worker> logger, IRequestsSender sender)
         {
@@ -21,21 +23,28 @@ namespace LeadStatusUpdater.Services
         public void Process()
         {
             var leads = _requests.GetAllLeads(); //get leads by filters (roles 2 3)
+
+
             leads.ForEach(lead => 
             {
                 var newRole = CheckOneLead(lead) ? Role.Vip : Role.Regular;
                 if (lead.Role != newRole)
                 {
-                    _requests.ChangeStatus(lead.Id, newRole);
 
                     if (newRole == Role.Vip)
                     {
-                        _logger.LogInformation($"Vip status was given to Lead: Id[{lead.Id}], FirstName[{lead.FirstName}], LastName[{lead.LastName}], Patronymic[{lead.Patronymic}], " +
+                        //_logger.LogInformation($"Vip status was given to Lead: Id[{lead.Id}], FirstName[{lead.FirstName}], LastName[{lead.LastName}], Patronymic[{lead.Patronymic}], " +
+                        //    $"Email:[{lead.Email}]");
+
+                        Log.Information($"Vip status was given to Lead: Id[{lead.Id}], FirstName[{lead.FirstName}], LastName[{lead.LastName}], Patronymic[{lead.Patronymic}], " +
                             $"Email:[{lead.Email}]");
                     }
                     else 
                     {
-                        _logger.LogInformation($"Vip status was taken from Lead: Id[{lead.Id}], FirstName[{lead.FirstName}], LastName[{lead.LastName}], Patronymic[{lead.Patronymic}], " +
+                        //_logger.LogInformation($"Vip status was taken from Lead: Id[{lead.Id}], FirstName[{lead.FirstName}], LastName[{lead.LastName}], Patronymic[{lead.Patronymic}], " +
+                        //    $"Email:[{lead.Email}]");
+
+                        Log.Information($"Vip status was taken from Lead: Id[{lead.Id}], FirstName[{lead.FirstName}], LastName[{lead.LastName}], Patronymic[{lead.Patronymic}], " +
                             $"Email:[{lead.Email}]");
                     }
 
@@ -53,9 +62,11 @@ namespace LeadStatusUpdater.Services
 
         public bool CheckOneLead(LeadOutputModel lead)
         {
-            return (//CheckBirthdayCondition(lead.BirthDate) ||
-                CheckOperationsCondition(lead) ||
-                CheckBalanceCondition(lead));
+            return (
+                //CheckBirthdayCondition(lead.BirthDate) ||
+                CheckOperationsCondition(lead) 
+                //|| CheckBalanceCondition(lead)
+                );
         }
 
 
@@ -70,6 +81,7 @@ namespace LeadStatusUpdater.Services
                     From = DateTime.Now.AddDays(-Const.PERIOD_FOR_CHECK_TRANSACTIONS_FOR_VIP).ToString("dd.MM.yyyy HH:mm"),
                     AccountId = account.Id
                 };
+
                 var accountsWithTransactions = _requests.GetTransactionsByPeriod(period);
 
                 if(accountsWithTransactions.FirstOrDefault().Transactions.Count > 0)
@@ -110,16 +122,20 @@ namespace LeadStatusUpdater.Services
             //        sumWithdraw += tr.Amount;
             //    }
             //}
-            if (Math.Abs(sumWithdraw) > sumDeposit + Const.SUM_DIFFERENCE_DEPOSIT_AND_WITHRAW_FOR_VIP) return true;
-            return false;
+
+            return (Math.Abs(sumWithdraw) > sumDeposit + Const.SUM_DIFFERENCE_DEPOSIT_AND_WITHRAW_FOR_VIP);
         }
 
-        public bool CheckBirthdayCondition(string bDay)
+        public bool CheckBirthdayCondition(int birthDay, int birthMonth)
         {
+            var birthDayAndMonth = new LeadBirthDateFilterModel { BirthDay = birthDay, BirthMonth = birthMonth };
+
+            string bDay = "nulll";
             bDay = bDay.Substring(5, 5);
             var date = DateTime.ParseExact(bDay, "MM.dd", null);
-            if (date <= DateTime.Now && date.AddDays(Const.COUNT_DAY_AFTER_BDAY_FOR_VIP) > DateTime.Now) return true;
-            return false;
+
+
+            return (date <= DateTime.Now && date.AddDays(Const.COUNT_DAY_AFTER_BDAY_FOR_VIP) > DateTime.Now);
         }
 
     }
