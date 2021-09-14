@@ -28,6 +28,7 @@ namespace LeadStatusUpdater.Requests
             var filterInputModel = new LeadFiltersInputModel
             { Role = new List<int> { (int)Role.Regular, (int)Role.Vip } };
             var request = _requestHelper.CreatePostRequest(Endpoints.GetLeadsByFiltersEndpoint, filterInputModel, adminToken);
+            request.Timeout = 300000;
             dynamic response;
             do
             {

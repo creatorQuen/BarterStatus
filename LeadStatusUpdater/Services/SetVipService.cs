@@ -23,7 +23,7 @@ namespace LeadStatusUpdater.Services
         {
             _adminToken = _requests.GetAdminToken();
             
-            var leads = _requests.GetRegularAndVipLeads(_adminToken); //get leads by filters (roles 2 3)
+            var leads = _requests.GetRegularAndVipLeads(_adminToken);
 
             leads.ForEach(lead => 
             {
