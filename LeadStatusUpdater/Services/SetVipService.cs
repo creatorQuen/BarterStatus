@@ -53,9 +53,9 @@ namespace LeadStatusUpdater.Services
         public bool CheckOneLead(LeadOutputModel lead)
         {
             return (
-                //CheckBirthdayCondition(lead.BirthDate) ||
-                CheckOperationsCondition(lead) 
-                //|| CheckBalanceCondition(lead)
+                CheckBirthdayCondition(lead) //||
+                //CheckOperationsCondition(lead) 
+                //||CheckBalanceCondition(lead)
                 );
         }
 
@@ -116,17 +116,21 @@ namespace LeadStatusUpdater.Services
             return (Math.Abs(sumWithdraw) > sumDeposit + Const.SUM_DIFFERENCE_DEPOSIT_AND_WITHRAW_FOR_VIP);
         }
 
-        public bool CheckBirthdayCondition(int birthDay, int birthMonth)
+        public bool CheckBirthdayCondition(LeadOutputModel lead)
         {
-            var birthDayAndMonth = new LeadBirthDateFilterModel { BirthDay = birthDay, BirthMonth = birthMonth };
+            var leadBirthDate = Convert.ToDateTime(lead.BirthDate);
+            if(leadBirthDate.Day == DateTime.Now.Day 
+                && leadBirthDate.Month == DateTime.Now.Month)
+            {
+                //send email
+                return true;
+            }
 
-            
-            //string bDay = "nulll";
-            //bDay = bDay.Substring(5, 5);
-            //var date = DateTime.ParseExact(bDay, "MM.dd", null);
-
-
-            //return (date <= DateTime.Now && date.AddDays(Const.COUNT_DAY_AFTER_BDAY_FOR_VIP) > DateTime.Now);
+            if (leadBirthDate.Day <= DateTime.Now.Day 
+                && leadBirthDate.Day >= DateTime.Now.AddDays(-Const.COUNT_DAY_AFTER_BDAY_FOR_VIP).Day)
+            {
+                return true;
+            }
 
             return false;
         }
