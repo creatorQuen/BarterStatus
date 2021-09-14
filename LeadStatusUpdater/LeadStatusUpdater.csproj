@@ -18,6 +18,5 @@
 
   <ItemGroup>
     <Folder Include="Enum\" />
-    <Folder Include="Constants\" />
   </ItemGroup>
 </Project>

@@ -1,0 +1,22 @@
+2021-09-14 14:20:58.424 +03:00 [INF] Request to endpoint {0} resulted with status code {1} api/auth/sign-in OK
+2021-09-14 14:21:18.724 +03:00 [INF] Worker started at: 14.09.2021 14:21:18
+2021-09-14 14:21:35.019 +03:00 [INF] Request to endpoint {0} resulted with status code {1} /api/Lead OK
+2021-09-14 14:39:21.050 +03:00 [INF] Worker started at: 14.09.2021 14:39:21
+2021-09-14 14:39:29.277 +03:00 [INF] Request to endpoint 0 resulted with status code 1 api/auth/sign-in OK
+2021-09-14 14:39:38.258 +03:00 [INF] Request to endpoint 0 resulted with status code 1 /api/Lead OK
+2021-09-14 14:44:07.925 +03:00 [INF] Worker started at: 14.09.2021 14:44:07
+2021-09-14 14:44:27.411 +03:00 [INF] Request to endpoint 0 resulted with status code 1
+2021-09-14 14:48:38.044 +03:00 [INF] Worker started at: 14.09.2021 14:48:38
+2021-09-14 14:48:54.735 +03:00 [INF] Request to endpoint api/auth/sign-in resulted with status code "OK"
+2021-09-14 14:49:17.994 +03:00 [INF] Request to endpoint /api/Lead resulted with status code "OK"
+2021-09-14 14:57:25.614 +03:00 [INF] Request to endpoint /api/Account/by-period resulted with status code "OK"
+2021-09-14 16:40:35.197 +03:00 [INF] Worker started at: 14.09.2021 16:40:35
+2021-09-14 16:40:41.398 +03:00 [INF] Request to endpoint api/auth/sign-in resulted with status code "OK"
+2021-09-14 16:41:21.262 +03:00 [INF] Request to endpoint /api/lead/filter resulted with status code "MethodNotAllowed"
+2021-09-14 16:44:40.114 +03:00 [INF] Worker started at: 14.09.2021 16:44:40
+2021-09-14 16:44:50.548 +03:00 [INF] Request to endpoint api/auth/sign-in resulted with status code "OK"
+2021-09-14 16:55:47.991 +03:00 [INF] Worker started at: 14.09.2021 16:55:47
+2021-09-14 17:01:25.846 +03:00 [INF] Request to endpoint api/auth/sign-in resulted with status code "OK"
+2021-09-14 17:05:58.808 +03:00 [INF] Worker started at: 14.09.2021 17:05:58
+2021-09-14 17:06:25.631 +03:00 [INF] Request to endpoint api/auth/sign-in resulted with status code "OK"
+2021-09-14 17:07:06.821 +03:00 [INF] Request to endpoint /api/lead/filter resulted with status code "OK"

@@ -27,7 +27,7 @@ namespace LeadStatusUpdater.Extensions
         }
 
         public const string catalogName = "LogsMyLeads";
-        private const string _fileNameAndFormantForLog = "LogMy-.txt";
+        private const string _fileNameAndFormatForLog = "Log.txt";
 
         public static void ConfigureLogger(this IConfiguration configuration)
         {
@@ -41,11 +41,10 @@ namespace LeadStatusUpdater.Extensions
                     .CreateLogger();
         }
 
-
         public static string GetPathToFile(this IConfiguration configuration)
         {
             var pathToFolder = CheckFolderIfAbsentThenCreate();
-            var path = Path.Combine(pathToFolder, _fileNameAndFormantForLog);
+            var path = Path.Combine(pathToFolder, _fileNameAndFormatForLog);
             return path;
         }
 

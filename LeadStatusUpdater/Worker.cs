@@ -10,20 +10,17 @@ namespace LeadStatusUpdater
 {
     public class Worker : BackgroundService
     {
-        private readonly ILogger<Worker> _logger;
         private readonly ISetVipService _service;
 
         private int _timeSpan = 10000000;
 
-        public Worker(ILogger<Worker> logger, ISetVipService service)
+        public Worker(ISetVipService service)
         {
-            _logger = logger;
             _service = service;
         }
 
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation($"Worker started at: {DateTime.Now}");
             Log.Information($"Worker started at: {DateTime.Now}");
             await base.StartAsync(cancellationToken);
         }
@@ -31,7 +28,6 @@ namespace LeadStatusUpdater
         public override async Task StopAsync(CancellationToken cancellationToken)
         {
             Log.Information($"Worker stopped at: {DateTime.Now}");
-            _logger.LogInformation($"Worker stopped at: {DateTime.Now}");
             await base.StopAsync(cancellationToken);
         }
 
@@ -41,7 +37,6 @@ namespace LeadStatusUpdater
             {
                 _service.Process();
 
-                _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
                 await Task.Delay(_timeSpan, stoppingToken);
             }
         }

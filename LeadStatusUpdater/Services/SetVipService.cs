@@ -1,7 +1,6 @@
 ﻿using LeadStatusUpdater.Constants;
 using LeadStatusUpdater.Enums;
 using LeadStatusUpdater.Models;
-using Microsoft.Extensions.Logging;
 using Serilog;
 using System;
 using System.Linq;
@@ -11,37 +10,41 @@ namespace LeadStatusUpdater.Services
     public class SetVipService : ISetVipService
     {
         private IRequestsSender _requests;
-        private readonly ILogger<Worker> _logger;
         private const string _dateFormat = "MM.dd";
+        private const string _dateFormatWithMinutesAndSeconds = "dd.MM.yyyy HH:mm";
+        private string _adminToken;
 
-        public SetVipService(ILogger<Worker> logger, IRequestsSender sender)
+        public SetVipService(IRequestsSender sender)
         {
             _requests = sender;
-            _logger = logger;
         }
 
         public void Process()
         {
-            var leads = _requests.GetAllLeads(); //get leads by filters (roles 2 3)
-
+            _adminToken = _requests.GetAdminToken();
+            
+            var leads = _requests.GetRegularAndVipLeads(_adminToken); //get leads by filters (roles 2 3)
 
             leads.ForEach(lead => 
             {
                 var newRole = CheckOneLead(lead) ? Role.Vip : Role.Regular;
                 if (lead.Role != newRole)
                 {
-                   _requests.ChangeStatus(lead.Id, newRole);
+                    _requests.ChangeStatus(lead.Id, newRole, _adminToken); //change
+                    string logMessage = newRole == Role.Vip ? $"{LogMessages.VipStatusGiven} " : $"{LogMessages.VipStatusTaken} ";
+                    logMessage += $"{ lead.Id} {lead.LastName} {lead.FirstName} {lead.Patronymic} {lead.Email}";
+                    Log.Information(logMessage);
 
-                    if (newRole == Role.Vip)
-                    {
-                        Log.Information($"Vip status was given to Lead: Id[{lead.Id}], FirstName[{lead.FirstName}], LastName[{lead.LastName}], Patronymic[{lead.Patronymic}], " +
-                            $"Email:[{lead.Email}]");
-                    }
-                    else 
-                    {
-                        Log.Information($"Vip status was taken from Lead: Id[{lead.Id}], FirstName[{lead.FirstName}], LastName[{lead.LastName}], Patronymic[{lead.Patronymic}], " +
-                            $"Email:[{lead.Email}]");
-                    }
+                    //if (newRole == Role.Vip)
+                    //{
+                    //    Log.Information($"{LogMessages.VipStatusGiven} " +
+                    //        $"{ lead.Id} {lead.LastName} {lead.FirstName} {lead.Patronymic} {lead.Email}");
+                    //}
+                    //else 
+                    //{
+                    //    Log.Information($"{LogMessages.VipStatusTaken} " +
+                    //        $"{ lead.Id} {lead.LastName} {lead.FirstName} {lead.Patronymic} {lead.Email}");
+                    //}
 
                 }
             });
@@ -64,21 +67,21 @@ namespace LeadStatusUpdater.Services
             {
                 TimeBasedAcquisitionInputModel period = new TimeBasedAcquisitionInputModel
                 {
-                    To = DateTime.Now.ToString("dd.MM.yyyy HH:mm"),
-                    From = DateTime.Now.AddDays(-Const.PERIOD_FOR_CHECK_TRANSACTIONS_FOR_VIP).ToString("dd.MM.yyyy HH:mm"),
+                    To = DateTime.Now.ToString(_dateFormatWithMinutesAndSeconds),
+                    From = DateTime.Now.AddDays(-Const.PERIOD_FOR_CHECK_TRANSACTIONS_FOR_VIP).ToString(_dateFormatWithMinutesAndSeconds),
                     AccountId = account.Id
                 };
 
-                var accountsWithTransactions = _requests.GetTransactionsByPeriod(period);
+                var transactions = _requests.GetTransactionsByPeriod(period, _adminToken).FirstOrDefault(); 
 
-                if(accountsWithTransactions.FirstOrDefault().Transactions.Count > 0)
+                if(transactions.Transactions.Count > 0)
                 {
-                    transactionsCount += accountsWithTransactions.FirstOrDefault().Transactions.
+                    transactionsCount += transactions.Transactions.
                     Where(t => t.TransactionType == TransactionType.Deposit).Count();
                 }
-                if(accountsWithTransactions.FirstOrDefault().Transfers.Count > 0)
+                if(transactions.Transfers.Count > 0)
                 {
-                    transactionsCount += accountsWithTransactions.FirstOrDefault().Transfers.Count();
+                    transactionsCount += transactions.Transfers.Count();
                 }
                 
                 if (transactionsCount > Const.COUNT_TRANSACTIONS_IN_PERIOD_FOR_VIP) return true;
@@ -96,7 +99,7 @@ namespace LeadStatusUpdater.Services
                 From = DateTime.Now.AddDays(-Const.PERIOD_FOR_CHECK_SUM_FOR_VIP).ToString(),
                 AccountId = lead.Id
             };
-            var transactions = _requests.GetTransactionsByPeriod(model);
+            var transactions = _requests.GetTransactionsByPeriod(model, _adminToken);
 
             //foreach (var tr in transactions)
             //{

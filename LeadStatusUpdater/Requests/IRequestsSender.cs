@@ -6,8 +6,9 @@ namespace LeadStatusUpdater
 {
     public interface IRequestsSender
     {
-        List<LeadOutputModel> GetAllLeads();
-        LeadOutputModel ChangeStatus(int leadId, Role status);
-        List<AccountBusinessModel> GetTransactionsByPeriod(TimeBasedAcquisitionInputModel model);
+        List<LeadOutputModel> GetRegularAndVipLeads(string adminToken);
+        LeadOutputModel ChangeStatus(int leadId, Role status, string adminToken);
+        List<AccountBusinessModel> GetTransactionsByPeriod(TimeBasedAcquisitionInputModel model, string adminToken);
+        string GetAdminToken();
     }
 }

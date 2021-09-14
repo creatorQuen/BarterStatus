@@ -1,6 +1,9 @@
-﻿namespace LeadStatusUpdater.Models
+﻿using System.Collections.Generic;
+
+namespace LeadStatusUpdater.Models
 {
-    class LeadFiltersInputModel
+    public class LeadFiltersInputModel
     {
+        public List<int> Role { get; set; } 
     }
 }
