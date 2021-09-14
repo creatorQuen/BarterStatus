@@ -2905,3 +2905,43 @@
 2021-09-14 17:46:25.018 +03:00 [INF] Request to endpoint api/auth/sign-in resulted with status code "OK"
 2021-09-14 17:55:19.779 +03:00 [INF] Worker started at: 14.09.2021 17:55:19
 2021-09-14 17:55:26.755 +03:00 [INF] Request to endpoint api/auth/sign-in resulted with status code "OK"
+2021-09-14 19:30:02.700 +03:00 [INF] Worker started at: 14.09.2021 19:30:02
+2021-09-14 19:30:14.560 +03:00 [INF] Request to endpoint api/auth/sign-in resulted with status code "0"
+2021-09-14 19:30:19.119 +03:00 [INF] Request to endpoint api/auth/sign-in resulted with status code "0"
+2021-09-14 19:30:23.189 +03:00 [INF] Request to endpoint api/auth/sign-in resulted with status code "0"
+2021-09-14 19:30:27.270 +03:00 [INF] Request to endpoint api/auth/sign-in resulted with status code "0"
+2021-09-14 19:30:31.354 +03:00 [INF] Request to endpoint api/auth/sign-in resulted with status code "0"
+2021-09-14 19:30:35.404 +03:00 [INF] Request to endpoint api/auth/sign-in resulted with status code "0"
+2021-09-14 19:30:39.494 +03:00 [INF] Request to endpoint api/auth/sign-in resulted with status code "0"
+2021-09-14 19:30:43.605 +03:00 [INF] Request to endpoint api/auth/sign-in resulted with status code "0"
+2021-09-14 19:30:47.663 +03:00 [INF] Request to endpoint api/auth/sign-in resulted with status code "0"
+2021-09-14 19:32:19.732 +03:00 [INF] Worker started at: 14.09.2021 19:32:19
+2021-09-14 19:32:22.652 +03:00 [INF] Request to endpoint api/auth/sign-in resulted with status code "OK"
+2021-09-14 19:32:36.946 +03:00 [INF] Request to endpoint /api/lead/by-filters resulted with status code "OK"
+2021-09-14 21:46:36.424 +03:00 [INF] Worker started at: 14.09.2021 21:46:36
+2021-09-14 21:46:39.200 +03:00 [INF] Request to endpoint api/auth/sign-in resulted with status code "OK"
+2021-09-14 21:51:31.616 +03:00 [INF] Worker started at: 14.09.2021 21:51:31
+2021-09-14 21:51:32.470 +03:00 [INF] Request to endpoint api/auth/sign-in resulted with status code "OK"
+2021-09-14 21:53:46.849 +03:00 [INF] Worker started at: 14.09.2021 21:53:46
+2021-09-14 21:53:50.403 +03:00 [INF] Request to endpoint api/auth/sign-in resulted with status code "OK"
+2021-09-14 21:57:28.804 +03:00 [INF] Worker started at: 14.09.2021 21:57:28
+2021-09-14 21:57:32.812 +03:00 [INF] Request to endpoint api/auth/sign-in resulted with status code "OK"
+2021-09-14 21:58:37.912 +03:00 [INF] Request to endpoint /api/lead/by-batches/cursorId/ resulted with status code "OK"
+2021-09-14 22:05:26.459 +03:00 [INF] Worker started at: 14.09.2021 22:05:26
+2021-09-14 22:05:27.382 +03:00 [INF] Request to endpoint api/auth/sign-in resulted with status code "OK"
+2021-09-14 22:08:58.591 +03:00 [INF] Worker started at: 14.09.2021 22:08:58
+2021-09-14 22:08:59.235 +03:00 [INF] Request to endpoint api/auth/sign-in resulted with status code "OK"
+2021-09-14 22:09:09.780 +03:00 [INF] Request to endpoint /api/lead/by-batches/cursorId/ resulted with status code "OK"
+2021-09-14 22:25:37.291 +03:00 [INF] Worker started at: 14.09.2021 22:25:37
+2021-09-14 22:25:40.226 +03:00 [INF] Request to endpoint api/auth/sign-in resulted with status code "OK"
+2021-09-14 22:25:48.228 +03:00 [INF] Request to endpoint /api/lead/by-batches/cursorId/ resulted with status code "OK"
+2021-09-14 22:28:33.519 +03:00 [INF] Request to endpoint /api/Account/by-period resulted with status code "0"
+2021-09-14 22:29:47.389 +03:00 [INF] Worker started at: 14.09.2021 22:29:47
+2021-09-14 22:29:49.039 +03:00 [INF] Request to endpoint api/auth/sign-in resulted with status code "OK"
+2021-09-14 22:29:56.512 +03:00 [INF] Request to endpoint /api/lead/by-batches/cursorId/ resulted with status code "OK"
+2021-09-14 22:31:17.320 +03:00 [INF] Request to endpoint /api/Account/by-period resulted with status code "InternalServerError"
+2021-09-14 22:31:20.067 +03:00 [INF] Request to endpoint /api/Account/by-period resulted with status code "InternalServerError"
+2021-09-14 22:31:21.540 +03:00 [INF] Request to endpoint /api/Account/by-period resulted with status code "InternalServerError"
+2021-09-14 22:31:22.885 +03:00 [INF] Request to endpoint /api/Account/by-period resulted with status code "InternalServerError"
+2021-09-14 22:31:24.031 +03:00 [INF] Request to endpoint /api/Account/by-period resulted with status code "InternalServerError"
+2021-09-14 22:31:35.240 +03:00 [INF] Request to endpoint /api/Account/by-period resulted with status code "InternalServerError"

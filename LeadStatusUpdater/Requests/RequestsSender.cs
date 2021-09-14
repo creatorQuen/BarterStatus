@@ -5,7 +5,6 @@ using LeadStatusUpdater.Settings;
 using Microsoft.Extensions.Options;
 using RestSharp;
 using Serilog;
-using System;
 using System.Collections.Generic;
 
 namespace LeadStatusUpdater.Requests
@@ -23,17 +22,15 @@ namespace LeadStatusUpdater.Requests
             _requestHelper = new RequestHelper();
         }
 
-        public List<LeadOutputModel> GetRegularAndVipLeads(string adminToken)
+        public List<LeadOutputModel> GetRegularAndVipLeads(string adminToken, int cursor)
         {
-            var filterInputModel = new LeadFiltersInputModel
-            { Role = new List<int> { (int)Role.Regular, (int)Role.Vip } };
-            var request = _requestHelper.CreatePostRequest(Endpoints.GetLeadsByFiltersEndpoint, filterInputModel, adminToken);
-            request.Timeout = 300000;
-            dynamic response;
+            var endpoint = $"{Endpoints.GetLeadsByBatchesEndpoint}{cursor}";
+            var request = _requestHelper.CreateGetRequest(endpoint, adminToken);
+            IRestResponse<List<LeadOutputModel>> response;
             do
             {
                 response = _client.Execute<List<LeadOutputModel>>(request);
-                Log.Information($"{LogMessages.RequestResult}", Endpoints.GetLeadsByFiltersEndpoint, response.StatusCode);
+                Log.Information($"{LogMessages.RequestResult}", Endpoints.GetLeadsByBatchesEndpoint, response.StatusCode);
             }
             while (!response.IsSuccessful);
             return response.Data;
@@ -42,7 +39,7 @@ namespace LeadStatusUpdater.Requests
         public List<AccountBusinessModel> GetTransactionsByPeriod(TimeBasedAcquisitionInputModel model, string adminToken)
         {
             var request = _requestHelper.CreatePostRequest(Endpoints.GetTransactionByPeriodEndpoint, model, adminToken);
-            dynamic response;
+            IRestResponse<List<AccountBusinessModel>> response;
             do
             {
                 response = _client.Execute<List<AccountBusinessModel>>(request);
@@ -54,7 +51,7 @@ namespace LeadStatusUpdater.Requests
 
         public LeadOutputModel ChangeStatus(int leadId, Role status, string adminToken)
         {
-            var endpoint = ($"{Endpoints.ChangeStatusEndpoint}", leadId, status).ToString();
+            var endpoint = string.Format(Endpoints.ChangeStatusEndpoint, leadId, status);
             var request = _requestHelper.CreatePutRequest(endpoint, status, adminToken);
             var response = _client.Execute<LeadOutputModel>(request);
             return response.Data;
@@ -64,7 +61,7 @@ namespace LeadStatusUpdater.Requests
         {
             var postData = new AdminSignInModel { Email = _options.Value.AdminEmail, Password = _options.Value.AdminPassword };
             var request = _requestHelper.CreatePostRequest(Endpoints.SignInEndpoint, postData);
-            dynamic response;
+            IRestResponse<string> response;
             do
             {
                 response = _client.Execute<string>(request);

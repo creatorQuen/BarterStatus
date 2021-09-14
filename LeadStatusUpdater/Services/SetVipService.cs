@@ -3,6 +3,7 @@ using LeadStatusUpdater.Enums;
 using LeadStatusUpdater.Models;
 using Serilog;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace LeadStatusUpdater.Services
@@ -22,32 +23,31 @@ namespace LeadStatusUpdater.Services
         public void Process()
         {
             _adminToken = _requests.GetAdminToken();
-            
-            var leads = _requests.GetRegularAndVipLeads(_adminToken);
 
-            leads.ForEach(lead => 
+            var leads = new List<LeadOutputModel>();
+            int cursor = 0;
+            do
             {
-                var newRole = CheckOneLead(lead) ? Role.Vip : Role.Regular;
-                if (lead.Role != newRole)
+                leads = _requests.GetRegularAndVipLeads(_adminToken, cursor);
+
+                leads.ForEach(lead =>
                 {
-                    _requests.ChangeStatus(lead.Id, newRole, _adminToken); //change
-                    string logMessage = newRole == Role.Vip ? $"{LogMessages.VipStatusGiven} " : $"{LogMessages.VipStatusTaken} ";
-                    logMessage += $"{ lead.Id} {lead.LastName} {lead.FirstName} {lead.Patronymic} {lead.Email}";
-                    Log.Information(logMessage);
+                    var newRole = CheckOneLead(lead) ? Role.Vip : Role.Regular;
+                    if (lead.Role != newRole)
+                    {
+                        _requests.ChangeStatus(lead.Id, newRole, _adminToken); //change
+                        string logMessage = newRole == Role.Vip ? $"{LogMessages.VipStatusGiven} " : $"{LogMessages.VipStatusTaken} ";
+                        logMessage = string.Format(logMessage, lead.Id, lead.LastName, lead.FirstName, lead.Patronymic, lead.Email);
+                        Log.Information(logMessage);
+                    }
+                });
 
-                    //if (newRole == Role.Vip)
-                    //{
-                    //    Log.Information($"{LogMessages.VipStatusGiven} " +
-                    //        $"{ lead.Id} {lead.LastName} {lead.FirstName} {lead.Patronymic} {lead.Email}");
-                    //}
-                    //else 
-                    //{
-                    //    Log.Information($"{LogMessages.VipStatusTaken} " +
-                    //        $"{ lead.Id} {lead.LastName} {lead.FirstName} {lead.Patronymic} {lead.Email}");
-                    //}
-
+                if (leads != null)
+                {
+                    cursor = leads.Last().Id;
                 }
-            });
+            }
+            while (leads != null);
         }
 
         public bool CheckOneLead(LeadOutputModel lead)
