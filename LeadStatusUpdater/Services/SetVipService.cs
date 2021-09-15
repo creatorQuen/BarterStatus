@@ -14,13 +14,17 @@ namespace LeadStatusUpdater.Services
         private const string _dateFormatWithMinutesAndSeconds = "dd.MM.yyyy HH:mm";
         private string _adminToken;
 
-        public SetVipService(IRequestsSender sender)
+
+        public SetVipService(IRequestsSender sender
+            )
         {
             _requests = sender;
+
         }
 
         public void Process()
         {
+
             _adminToken = _requests.GetAdminToken();
 
             var leads = new List<LeadOutputModel>();
@@ -35,6 +39,7 @@ namespace LeadStatusUpdater.Services
                     var newRole = CheckOneLead(lead) ? Role.Vip : Role.Regular;
                     if (lead.Role != newRole)
                     {
+
                         _requests.ChangeStatus(lead.Id, newRole, _adminToken); //change
                         string logMessage = newRole == Role.Vip ? $"{LogMessages.VipStatusGiven} " : $"{LogMessages.VipStatusTaken} ";
                         logMessage = string.Format(logMessage, lead.Id, lead.LastName, lead.FirstName, lead.Patronymic, lead.Email);
@@ -44,7 +49,7 @@ namespace LeadStatusUpdater.Services
                     }
                 });
 
-                if (leads != null)
+                if (leads != null && leads.Count > 0)
                 {
                     cursor = leads.Last().Id;
                 }
@@ -55,8 +60,8 @@ namespace LeadStatusUpdater.Services
         public bool CheckOneLead(LeadOutputModel lead)
         {
             return (
-                CheckBirthdayCondition(lead) //||
-                //CheckOperationsCondition(lead) 
+                CheckBirthdayCondition(lead) ||
+                CheckOperationsCondition(lead) 
                 //||CheckBalanceCondition(lead)
                 );
         }

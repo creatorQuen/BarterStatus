@@ -16,7 +16,8 @@ namespace LeadStatusUpdater.Requests
         private readonly RestClient _client;
         private readonly RequestHelper _requestHelper;
         private readonly IOptions<AppSettings> _options;
-        private int _retryCount;
+        private const int _retryCount = 3;
+        private const int _retryTimeout = 10_000;
 
         public RequestsSender(IOptions<AppSettings> options)
         {
@@ -27,29 +28,35 @@ namespace LeadStatusUpdater.Requests
 
         public List<LeadOutputModel> GetRegularAndVipLeads(string adminToken, int cursor)
         {
-            _retryCount = 0;
             var endpoint = $"{Endpoints.GetLeadsByBatchesEndpoint}{cursor}";
             IRestResponse<List<LeadOutputModel>> response;
-            do
+
+            for (int i = 0; i < _retryCount; i++)
             {
-                if (_retryCount > 3) Thread.Sleep(30000);
                 var request = _requestHelper.CreateGetRequest(endpoint, adminToken);
                 response = _client.Execute<List<LeadOutputModel>>(request);
-                Log.Information($"{LogMessages.RequestResult}", Endpoints.GetLeadsByBatchesEndpoint, response.StatusCode);
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    Log.Information($"{LogMessages.RequestResult}", endpoint, response.StatusCode);
+                    return response.Data;
+                }
                 if (response.StatusCode == HttpStatusCode.Unauthorized)
                 {
                     adminToken = GetAdminToken();
                     Log.Information(LogMessages.NewTokenGenerated);
+                    i--;
+                    continue;
                 }
-                _retryCount++;
+                var error = response.ErrorMessage == default ? response.Content : response.ErrorMessage;
+                Log.Error($"{LogMessages.RequestFailed}", i, endpoint, error);
+                if (i != _retryCount - 1) Thread.Sleep(_retryTimeout);
             }
-            while (!response.IsSuccessful);
-            return response.Data;
+            //finish and sleep
+            return new List<LeadOutputModel>();
         }
 
         public List<AccountBusinessModel> GetTransactionsByPeriod(TimeBasedAcquisitionInputModel model, string adminToken)
         {
-            _retryCount = 0;
             IRestResponse<List<AccountBusinessModel>> response;
             do
             {
@@ -62,7 +69,6 @@ namespace LeadStatusUpdater.Requests
                     adminToken = GetAdminToken();
                     Log.Information(LogMessages.NewTokenGenerated); //change to const var
                 }
-                _retryCount++;
             }
             while (!response.IsSuccessful);
             return response.Data;
@@ -78,7 +84,6 @@ namespace LeadStatusUpdater.Requests
 
         public string GetAdminToken()
         {
-            _retryCount = 0;
             var postData = new AdminSignInModel { Email = _options.Value.AdminEmail, Password = _options.Value.AdminPassword };
             var request = _requestHelper.CreatePostRequest(Endpoints.SignInEndpoint, postData);
             IRestResponse<string> response;
@@ -87,7 +92,6 @@ namespace LeadStatusUpdater.Requests
                 if (_retryCount > 3) Thread.Sleep(30000);
                 response = _client.Execute<string>(request);
                 Log.Information($"{LogMessages.RequestResult}", Endpoints.SignInEndpoint, response.StatusCode);
-                _retryCount++;
             }
             while (!response.IsSuccessful);
             return response.Data;

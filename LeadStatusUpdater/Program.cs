@@ -1,7 +1,9 @@
+using LeadStatusUpdater.Common;
 using LeadStatusUpdater.Extensions;
 using LeadStatusUpdater.Requests;
 using LeadStatusUpdater.Services;
 using LeadStatusUpdater.Settings;
+using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -16,6 +18,13 @@ namespace LeadStatusUpdater
             var configuration = CreateConfiguratuion();
             configuration.SetEnvironmentVariableForConfiguration();
             configuration.ConfigureLogger();
+            var busControl = Bus.Factory.CreateUsingRabbitMq(cfg =>
+            {
+                cfg.ReceiveEndpoint("rates-queue", e =>
+                {
+                    e.Consumer<RatesConsumer>();
+                });
+            });
             CreateHostBuilder(args, configuration).Build().Run();
         }
 
@@ -41,23 +50,17 @@ namespace LeadStatusUpdater
 
                     //services.AddMassTransit(x =>
                     //{
-                    //    x.AddConsumer<MailTransactionConsumer>();
-                    //    x.AddConsumer<MailAdminConsumer>();
-                    //    x.SetKebabCaseEndpointNameFormatter();
+                    //    x.AddConsumer<RatesConsumer>();
                     //    x.UsingRabbitMq((context, cfg) =>
                     //    {
-                    //        cfg.ReceiveEndpoint(_queueTransaction, e =>
+                    //        cfg.ReceiveEndpoint("rates-queue", e =>
                     //        {
-                    //            e.ConfigureConsumer<MailTransactionConsumer>(context);
-                    //        });
-                    //        cfg.ReceiveEndpoint(_queueAdmin, e =>
-                    //        {
-                    //            e.ConfigureConsumer<MailAdminConsumer>(context);
+                    //            e.ConfigureConsumer<RatesConsumer>(context);
                     //        });
                     //    });
                     //});
 
-                    //services.AddMassTransitHostedService();
+                    services.AddMassTransitHostedService();
                 });
     }
 }

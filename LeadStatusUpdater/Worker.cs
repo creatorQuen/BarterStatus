@@ -1,6 +1,6 @@
+using LeadStatusUpdater.Constants;
 using LeadStatusUpdater.Services;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Serilog;
 using System;
 using System.Threading;
@@ -12,7 +12,7 @@ namespace LeadStatusUpdater
     {
         private readonly ISetVipService _service;
 
-        private int _timeSpan = 10000000;
+        private int _hourTimeSpan = 3600000;
 
         public Worker(ISetVipService service)
         {
@@ -21,6 +21,8 @@ namespace LeadStatusUpdater
 
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
+            Log.Information($"Sleeping: {DateTime.Now}");
+            Thread.Sleep(1000);
             Log.Information($"Worker started at: {DateTime.Now}");
             await base.StartAsync(cancellationToken);
         }
@@ -35,9 +37,15 @@ namespace LeadStatusUpdater
         {
             while (!stoppingToken.IsCancellationRequested)
             {
+                if(ConverterService.RatesModel == null)
+                {
+                    Log.Warning($"{LogMessages.RatesNotProvided}");
+                    Thread.Sleep(_hourTimeSpan);
+                    continue;
+                }
                 _service.Process();
 
-                await Task.Delay(_timeSpan, stoppingToken);
+                await Task.Delay(_hourTimeSpan, stoppingToken);
             }
         }
     }

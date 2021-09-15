@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace LeadStatusUpdater.Models
+namespace Exchange
 {
     public class RatesExchangeModel
     {

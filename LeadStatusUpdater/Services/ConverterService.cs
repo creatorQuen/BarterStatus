@@ -1,23 +1,21 @@
-﻿using LeadStatusUpdater.Models;
+﻿using Exchange;
 using System;
 
 namespace LeadStatusUpdater.Services
 {
     public class ConverterService : IConverterService
     {
-        private readonly string _baseCurrency;
-        private readonly RatesExchangeModel _ratesModel;
-        public ConverterService()
-        {
-        }
+        public static RatesExchangeModel RatesModel { get; set; }
+
+        private string _baseCurrency;
 
         public decimal ConvertAmount(string senderCurrency, string recipientCurrency, decimal amount)
         {
-            if (!IsValid(senderCurrency) || !IsValid(recipientCurrency)) throw new Exception("Currency is not valid");
+            _baseCurrency = RatesModel.BaseCurrency;
 
-            _ratesModel.Rates.TryGetValue($"{_baseCurrency}{senderCurrency}", out var senderCurrencyValue);
+            RatesModel.Rates.TryGetValue($"{_baseCurrency}{senderCurrency}", out var senderCurrencyValue);
 
-            _ratesModel.Rates.TryGetValue($"{_baseCurrency}{recipientCurrency}", out var recipientCurrencyValue);
+            RatesModel.Rates.TryGetValue($"{_baseCurrency}{recipientCurrency}", out var recipientCurrencyValue);
 
             if (senderCurrency == _baseCurrency)
                 senderCurrencyValue = 1m;
@@ -26,13 +24,6 @@ namespace LeadStatusUpdater.Services
                 recipientCurrencyValue = 1m;
 
             return Decimal.Round((senderCurrencyValue / recipientCurrencyValue * amount), 3);
-        }
-
-        private bool IsValid(string currency)
-        {
-            if (currency == _baseCurrency)
-                return true;
-            return _ratesModel.Rates.ContainsKey($"{_baseCurrency}{currency}");
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace LeadStatusUpdater.Services
+﻿using Exchange;
+
+namespace LeadStatusUpdater.Services
 {
     public interface IConverterService
     {
