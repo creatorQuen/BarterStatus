@@ -7,6 +7,7 @@ using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System;
 using System.IO;
 
 namespace LeadStatusUpdater
@@ -18,13 +19,6 @@ namespace LeadStatusUpdater
             var configuration = CreateConfiguratuion();
             configuration.SetEnvironmentVariableForConfiguration();
             configuration.ConfigureLogger();
-            var busControl = Bus.Factory.CreateUsingRabbitMq(cfg =>
-            {
-                cfg.ReceiveEndpoint("rates-queue", e =>
-                {
-                    e.Consumer<RatesConsumer>();
-                });
-            });
             CreateHostBuilder(args, configuration).Build().Run();
         }
 
@@ -47,6 +41,20 @@ namespace LeadStatusUpdater
                     services.AddHostedService<Worker>();
                     services.AddTransient<ISetVipService, SetVipService>();
                     services.AddTransient<IRequestsSender, RequestsSender>();
+
+                    services.AddMassTransit(x =>
+                    {
+                        x.AddConsumer<RatesConsumer>();
+                        x.SetKebabCaseEndpointNameFormatter();
+                        x.UsingRabbitMq((context, cfg) =>
+                        {
+                            cfg.ReceiveEndpoint("rates-queue-test", e =>
+                            {
+                                e.ConfigureConsumer<RatesConsumer>(context);
+                            });
+                        });
+                    });
+
 
                     //services.AddMassTransit(x =>
                     //{
