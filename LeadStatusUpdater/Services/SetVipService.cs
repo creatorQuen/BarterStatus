@@ -11,7 +11,6 @@ namespace LeadStatusUpdater.Services
     public class SetVipService : ISetVipService
     {
         private IRequestsSender _requests;
-        private const string _dateFormat = "MM.dd";
         private const string _dateFormatWithMinutesAndSeconds = "dd.MM.yyyy HH:mm";
         private string _adminToken;
 
@@ -26,6 +25,7 @@ namespace LeadStatusUpdater.Services
 
             var leads = new List<LeadOutputModel>();
             int cursor = 0;
+
             do
             {
                 leads = _requests.GetRegularAndVipLeads(_adminToken, cursor);
@@ -39,6 +39,8 @@ namespace LeadStatusUpdater.Services
                         string logMessage = newRole == Role.Vip ? $"{LogMessages.VipStatusGiven} " : $"{LogMessages.VipStatusTaken} ";
                         logMessage = string.Format(logMessage, lead.Id, lead.LastName, lead.FirstName, lead.Patronymic, lead.Email);
                         Log.Information(logMessage);
+                        //send email that status was changed to new status
+                        //Log that email was sent
                     }
                 });
 
@@ -74,12 +76,12 @@ namespace LeadStatusUpdater.Services
 
                 var transactions = _requests.GetTransactionsByPeriod(period, _adminToken).FirstOrDefault(); 
 
-                if(transactions.Transactions.Count > 0)
+                if(transactions.Transactions != null && transactions.Transactions.Count > 0)
                 {
                     transactionsCount += transactions.Transactions.
                     Where(t => t.TransactionType == TransactionType.Deposit).Count();
                 }
-                if(transactions.Transfers.Count > 0)
+                if(transactions.Transfers != null && transactions.Transfers.Count > 0)
                 {
                     transactionsCount += transactions.Transfers.Count();
                 }
@@ -143,16 +145,12 @@ namespace LeadStatusUpdater.Services
                 && leadBirthDate.Month == DateTime.Now.Month)
             {
                 //send email
+                //log that birthday email was sent
                 return true;
             }
 
-            if (leadBirthDate.Day <= DateTime.Now.Day 
-                && leadBirthDate.Day >= DateTime.Now.AddDays(-Const.COUNT_DAY_AFTER_BDAY_FOR_VIP).Day)
-            {
-                return true;
-            }
-
-            return false;
+            return leadBirthDate.Day <= DateTime.Now.Day
+                && leadBirthDate.Day >= DateTime.Now.AddDays(-Const.COUNT_DAY_AFTER_BDAY_FOR_VIP).Day;
         }
 
     }
