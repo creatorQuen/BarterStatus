@@ -42,8 +42,8 @@ namespace LeadStatusUpdater.Requests
                 }
                 if (response.StatusCode == HttpStatusCode.Unauthorized)
                 {
+                    Log.Warning($"{LogMessages.RequestResult}", endpoint, response.StatusCode);
                     adminToken = GetAdminToken();
-                    Log.Information(LogMessages.NewTokenGenerated);
                     i--;
                     continue;
                 }
@@ -57,21 +57,31 @@ namespace LeadStatusUpdater.Requests
 
         public List<AccountBusinessModel> GetTransactionsByPeriod(TimeBasedAcquisitionInputModel model, string adminToken)
         {
+            var endpoint = Endpoints.GetTransactionByPeriodEndpoint;
             IRestResponse<List<AccountBusinessModel>> response;
-            do
+
+            for (int i = 0; i < _retryCount; i++)
             {
-                if (_retryCount > 3) Thread.Sleep(30000);
-                var request = _requestHelper.CreatePostRequest(Endpoints.GetTransactionByPeriodEndpoint, model, adminToken);
+                var request = _requestHelper.CreatePostRequest(endpoint, model, adminToken);
                 response = _client.Execute<List<AccountBusinessModel>>(request);
-                Log.Information($"{LogMessages.RequestResult}", Endpoints.GetTransactionByPeriodEndpoint, response.StatusCode);
-                if(response.StatusCode == HttpStatusCode.Unauthorized)
+                if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    adminToken = GetAdminToken();
-                    Log.Information(LogMessages.NewTokenGenerated); //change to const var
+                    //Log.Information($"{LogMessages.RequestResult}", endpoint, response.StatusCode);
+                    return response.Data;
                 }
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    Log.Warning($"{LogMessages.RequestResult}", endpoint, response.StatusCode);
+                    adminToken = GetAdminToken();
+                    i--;
+                    continue;
+                }
+                var error = response.ErrorMessage == default ? response.Content : response.ErrorMessage;
+                Log.Error($"{LogMessages.RequestFailed}", i, endpoint, error);
+                if (i != _retryCount - 1) Thread.Sleep(_retryTimeout);
             }
-            while (!response.IsSuccessful);
-            return response.Data;
+            //finish and sleep
+            return new List<AccountBusinessModel>();
         }
 
         public LeadOutputModel ChangeStatus(int leadId, Role status, string adminToken) //change
@@ -84,17 +94,25 @@ namespace LeadStatusUpdater.Requests
 
         public string GetAdminToken()
         {
+            var endpoint = Endpoints.SignInEndpoint;
             var postData = new AdminSignInModel { Email = _options.Value.AdminEmail, Password = _options.Value.AdminPassword };
-            var request = _requestHelper.CreatePostRequest(Endpoints.SignInEndpoint, postData);
             IRestResponse<string> response;
-            do
+
+            for (int i = 0; i < _retryCount; i++)
             {
-                if (_retryCount > 3) Thread.Sleep(30000);
+                var request = _requestHelper.CreatePostRequest(endpoint, postData);
                 response = _client.Execute<string>(request);
-                Log.Information($"{LogMessages.RequestResult}", Endpoints.SignInEndpoint, response.StatusCode);
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    Log.Information($"{LogMessages.NewTokenGenerated}");
+                    return response.Data;
+                }
+                var error = response.ErrorMessage == default ? response.Content : response.ErrorMessage;
+                Log.Error($"{LogMessages.RequestFailed}", i, endpoint, error);
+                if (i != _retryCount - 1) Thread.Sleep(_retryTimeout);
             }
-            while (!response.IsSuccessful);
-            return response.Data;
+            //finish and sleep
+            return string.Empty;
         }
 
     }

@@ -21,8 +21,7 @@ namespace LeadStatusUpdater
 
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
-            Log.Information($"Sleeping: {DateTime.Now}");
-            Thread.Sleep(1000);
+            //sleep until 3.30
             Log.Information($"Worker started at: {DateTime.Now}");
             await base.StartAsync(cancellationToken);
         }
@@ -35,17 +34,28 @@ namespace LeadStatusUpdater
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            var attemt = 0;
             while (!stoppingToken.IsCancellationRequested)
             {
-                if(ConverterService.RatesModel == null)
+                Log.Information($"Cycle started at: {DateTime.Now}");
+                if (ConverterService.RatesModel == null && attemt < 1)
                 {
-                    Log.Warning($"{LogMessages.RatesNotProvided}");
+                    Log.Warning($"{LogMessages.RatesNotProvided} first time");
+                    attemt++;
                     Thread.Sleep(_hourTimeSpan);
                     continue;
                 }
-                _service.Process();
-
-                await Task.Delay(_hourTimeSpan, stoppingToken);
+                if(ConverterService.RatesModel == null && attemt > 0)
+                {
+                    Log.Warning($"{LogMessages.RatesNotProvided} twice, finished cycle");
+                    await Task.Delay(_hourTimeSpan, stoppingToken);//timer
+                }
+                else
+                {
+                    _service.Process();
+                    Log.Information($"Cycle finished successfully at: {DateTime.Now}");
+                    await Task.Delay(_hourTimeSpan, stoppingToken);//timer
+                }
             }
         }
     }

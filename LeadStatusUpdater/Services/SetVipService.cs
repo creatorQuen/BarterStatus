@@ -28,33 +28,46 @@ namespace LeadStatusUpdater.Services
             _adminToken = _requests.GetAdminToken();
 
             var leads = new List<LeadOutputModel>();
+            var leadsToChangeStatusList = new List<LeadIdAndRoleInputModel>();
+            var leadsToLogAndEmail = new List<LeadOutputModel>();
             int cursor = 0;
+            int leadsCount = 0;
 
             do
             {
                 leads = _requests.GetRegularAndVipLeads(_adminToken, cursor);
 
-                leads.ForEach(lead =>
+                if (leads != null && leadsCount > 0)
                 {
-                    var newRole = CheckOneLead(lead) ? Role.Vip : Role.Regular;
-                    if (lead.Role != newRole)
+                    leadsCount = leads.Count;
+                    Log.Information($"{leadsCount} leads were retrieved from database");
+
+                    leads.ForEach(lead =>
                     {
+                        var newRole = CheckOneLead(lead) ? Role.Vip : Role.Regular;
+                        if (lead.Role != newRole)
+                        {
+                            leadsToChangeStatusList.Add(new LeadIdAndRoleInputModel { Id = lead.Id, Role = newRole });
+                        }
+                    });
 
-                        _requests.ChangeStatus(lead.Id, newRole, _adminToken); //change
-                        string logMessage = newRole == Role.Vip ? $"{LogMessages.VipStatusGiven} " : $"{LogMessages.VipStatusTaken} ";
-                        logMessage = string.Format(logMessage, lead.Id, lead.LastName, lead.FirstName, lead.Patronymic, lead.Email);
-                        Log.Information(logMessage);
-                        //send email that status was changed to new status
-                        //Log that email was sent
-                    }
-                });
+                    //_requests.ChangeStatus(leadsToChangeStatusList, _adminToken); //change
 
-                if (leads != null && leads.Count > 0)
-                {
+                    leadsToLogAndEmail.AddRange(leads.Where(l => leadsToChangeStatusList.Any(c => l.Id == c.Id)));
+
                     cursor = leads.Last().Id;
                 }
             }
-            while (leads != null);
+            while (leads != null && leadsCount > 0);
+
+            Log.Information($"All leads were processed");
+            foreach (var lead in leadsToLogAndEmail)
+            {
+                string logMessage = lead.Role == Role.Vip ? $"{LogMessages.VipStatusGiven} " : $"{LogMessages.VipStatusTaken} ";
+                logMessage = string.Format(logMessage, lead.Id, lead.LastName, lead.FirstName, lead.Patronymic, lead.Email);
+                Log.Information(logMessage);
+                //send email about status change
+            }
         }
 
         public bool CheckOneLead(LeadOutputModel lead)
@@ -79,9 +92,9 @@ namespace LeadStatusUpdater.Services
                     AccountId = account.Id
                 };
 
-                var transactions = _requests.GetTransactionsByPeriod(period, _adminToken).FirstOrDefault(); 
+                var transactions = _requests.GetTransactionsByPeriod(period, _adminToken).FirstOrDefault();
 
-                if(transactions.Transactions != null && transactions.Transactions.Count > 0)
+                if (transactions.Transactions != null && transactions.Transactions.Count > 0)
                 {
                     transactionsCount += transactions.Transactions.
                     Where(t => t.TransactionType == TransactionType.Deposit).Count();
@@ -150,7 +163,6 @@ namespace LeadStatusUpdater.Services
                 && leadBirthDate.Month == DateTime.Now.Month)
             {
                 //send email
-                //log that birthday email was sent
                 return true;
             }
 
