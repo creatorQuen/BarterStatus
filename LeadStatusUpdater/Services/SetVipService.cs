@@ -101,17 +101,37 @@ namespace LeadStatusUpdater.Services
             };
             var transactions = _requests.GetTransactionsByPeriod(model, _adminToken);
 
-            //foreach (var tr in transactions)
-            //{
-            //    if (tr.TransactionType == TransactionType.Deposit)
-            //    {
-            //        sumDeposit += tr.Amount;
-            //    }
-            //    if (tr.TransactionType == TransactionType.Withdraw)
-            //    {
-            //        sumWithdraw += tr.Amount;
-            //    }
-            //}
+            foreach (var accountBusinessModel in transactions)
+            {
+                foreach (var transaction in accountBusinessModel.Transactions)
+                {
+                    if (transaction.TransactionType == TransactionType.Deposit)
+                    {
+                        if (transaction.Currency == Currency.RUB)
+                        {
+                            sumDeposit += transaction.Amount;
+                        }
+                        else
+                        {
+                            //var money = transion.Amoun
+                        }
+
+                    }
+
+                    if (transaction.TransactionType == TransactionType.Withdraw)
+                    {
+                        if (transaction.Currency == Currency.RUB)
+                        {
+                            sumWithdraw += transaction.Amount;
+                        }
+                        else
+                        {
+
+                        }
+                    }
+                }
+
+            }
 
             return (Math.Abs(sumWithdraw) > sumDeposit + Const.SUM_DIFFERENCE_DEPOSIT_AND_WITHRAW_FOR_VIP);
         }
