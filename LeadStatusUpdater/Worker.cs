@@ -33,7 +33,6 @@ namespace LeadStatusUpdater
             Log.Information($"Worker started at: {DateTime.Now}");
             await base.StartAsync(cancellationToken);
         }
-
         public override async Task StopAsync(CancellationToken cancellationToken)
         {
 
@@ -45,11 +44,11 @@ namespace LeadStatusUpdater
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                //if (ConverterService.RatesModel == null)
-                //{
-                //    await Task.Delay(2000, stoppingToken);
-                //    continue;
-                //}
+                if (ConverterService.RatesModel == null)
+                {
+                    await Task.Delay(2000, stoppingToken);
+                    continue;
+                }
 
                 //var attempt = 0;
 

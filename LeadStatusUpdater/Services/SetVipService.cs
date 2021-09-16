@@ -11,14 +11,16 @@ namespace LeadStatusUpdater.Services
     public class SetVipService : ISetVipService
     {
         private IRequestsSender _requests;
+        private IConverterService _converter;
         private const string _dateFormatWithMinutesAndSeconds = "dd.MM.yyyy HH:mm";
         private string _adminToken;
 
 
-        public SetVipService(IRequestsSender sender)
+        public SetVipService(IRequestsSender sender,
+            IConverterService converter)
         {
             _requests = sender;
-
+            _converter = converter;
         }
 
         public void Process()
@@ -72,8 +74,8 @@ namespace LeadStatusUpdater.Services
         {
             return (
                 CheckBirthdayCondition(lead)
-                ||CheckOperationsCondition(lead) 
-                //||CheckBalanceCondition(lead)
+                //|CheckOperationsCondition(lead) 
+                ||CheckBalanceCondition(lead)
                 );
         }
 
@@ -109,49 +111,49 @@ namespace LeadStatusUpdater.Services
 
         public bool CheckBalanceCondition(LeadOutputModel lead)
         {
-            decimal sumDeposit = 0;
-            decimal sumWithdraw = 0;
-            TimeBasedAcquisitionInputModel model = new TimeBasedAcquisitionInputModel
+            decimal sum = 0;
+
+            TimeBasedAcquisitionInputModel period = new TimeBasedAcquisitionInputModel
             {
-                To = DateTime.Now.ToString(),
-                From = DateTime.Now.AddDays(-Const.PERIOD_FOR_CHECK_SUM_FOR_VIP).ToString(),
+                To = DateTime.Now.ToString(_dateFormatWithMinutesAndSeconds),
+                From = DateTime.Now.AddDays(-Const.PERIOD_FOR_CHECK_SUM_FOR_VIP).ToString(_dateFormatWithMinutesAndSeconds),
                 AccountId = lead.Id
             };
-            var transactions = _requests.GetTransactionsByPeriod(model, _adminToken);
 
-            foreach (var accountBusinessModel in transactions)
+            var transactions = _requests.GetTransactionsByPeriod(period, _adminToken).FirstOrDefault();
+
+            if(transactions.Transactions != null && transactions.Transactions.Count > 0)
             {
-                foreach (var transaction in accountBusinessModel.Transactions)
+                foreach (var transaction in transactions.Transactions)
                 {
                     if (transaction.TransactionType == TransactionType.Deposit)
                     {
                         if (transaction.Currency == Currency.RUB)
                         {
-                            sumDeposit += transaction.Amount;
+                            sum += transaction.Amount;
                         }
                         else
                         {
-                            //var money = transion.Amoun
+                            var convertedAmount = _converter.ConvertAmount(transaction.Currency.ToString(), Currency.RUB.ToString(), transaction.Amount);
+                            sum += convertedAmount;
                         }
-
                     }
-
-                    if (transaction.TransactionType == TransactionType.Withdraw)
+                    else if (transaction.TransactionType == TransactionType.Withdraw)
                     {
                         if (transaction.Currency == Currency.RUB)
                         {
-                            sumWithdraw += transaction.Amount;
+                            sum -= transaction.Amount;
                         }
                         else
                         {
-
+                            var convertedAmount = _converter.ConvertAmount(transaction.Currency.ToString(), Currency.RUB.ToString(), transaction.Amount);
+                            sum -= convertedAmount;
                         }
                     }
                 }
-
             }
 
-            return (Math.Abs(sumWithdraw) > sumDeposit + Const.SUM_DIFFERENCE_DEPOSIT_AND_WITHRAW_FOR_VIP);
+            return (sum > Const.SUM_DIFFERENCE_DEPOSIT_AND_WITHRAW_FOR_VIP);
         }
 
         public bool CheckBirthdayCondition(LeadOutputModel lead)

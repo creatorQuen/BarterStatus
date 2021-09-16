@@ -23,7 +23,7 @@ namespace LeadStatusUpdater.Services
             if (recipientCurrency == _baseCurrency)
                 recipientCurrencyValue = 1m;
 
-            return Decimal.Round((senderCurrencyValue / recipientCurrencyValue * amount), 3);
+            return Decimal.Round((recipientCurrencyValue / senderCurrencyValue * amount), 3);
         }
     }
 }
