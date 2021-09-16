@@ -5,6 +5,7 @@ using LeadStatusUpdater.Settings;
 using Microsoft.Extensions.Options;
 using RestSharp;
 using Serilog;
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading;
@@ -26,12 +27,12 @@ namespace LeadStatusUpdater.Requests
             _requestHelper = new RequestHelper();
         }
 
-        public List<LeadOutputModel> GetRegularAndVipLeads(string adminToken, int cursor)
+        public List<LeadOutputModel> GetRegularAndVipLeads(string adminToken, int lastLeadIs)
         {
-            var endpoint = $"{Endpoints.GetLeadsByBatchesEndpoint}{cursor}";
+            var endpoint = $"{Endpoints.GetLeadsByBatchesEndpoint}{lastLeadIs}";
             IRestResponse<List<LeadOutputModel>> response;
 
-            for (int i = 0; i < _retryCount; i++)
+            for (int i = 1; i <= _retryCount; i++)
             {
                 var request = _requestHelper.CreateGetRequest(endpoint, adminToken);
                 response = _client.Execute<List<LeadOutputModel>>(request);
@@ -51,8 +52,7 @@ namespace LeadStatusUpdater.Requests
                 Log.Error($"{LogMessages.RequestFailed}", i, endpoint, error);
                 if (i != _retryCount - 1) Thread.Sleep(_retryTimeout);
             }
-            //finish and sleep
-            return new List<LeadOutputModel>();
+            throw new Exception($"{LogMessages.CrmNotResponding}");
         }
 
         public List<AccountBusinessModel> GetTransactionsByPeriod(TimeBasedAcquisitionInputModel model, string adminToken)
@@ -60,7 +60,7 @@ namespace LeadStatusUpdater.Requests
             var endpoint = Endpoints.GetTransactionByPeriodEndpoint;
             IRestResponse<List<AccountBusinessModel>> response;
 
-            for (int i = 0; i < _retryCount; i++)
+            for (int i = 1; i <= _retryCount; i++)
             {
                 var request = _requestHelper.CreatePostRequest(endpoint, model, adminToken);
                 response = _client.Execute<List<AccountBusinessModel>>(request);
@@ -80,8 +80,7 @@ namespace LeadStatusUpdater.Requests
                 Log.Error($"{LogMessages.RequestFailed}", i, endpoint, error);
                 if (i != _retryCount - 1) Thread.Sleep(_retryTimeout);
             }
-            //finish and sleep
-            return new List<AccountBusinessModel>();
+            throw new Exception($"{LogMessages.CrmNotResponding}");
         }
 
         public LeadOutputModel ChangeStatus(int leadId, Role status, string adminToken) //change
@@ -98,7 +97,7 @@ namespace LeadStatusUpdater.Requests
             var postData = new AdminSignInModel { Email = _options.Value.AdminEmail, Password = _options.Value.AdminPassword };
             IRestResponse<string> response;
 
-            for (int i = 0; i < _retryCount; i++)
+            for (int i = 1; i <= _retryCount; i++)
             {
                 var request = _requestHelper.CreatePostRequest(endpoint, postData);
                 response = _client.Execute<string>(request);
@@ -111,8 +110,7 @@ namespace LeadStatusUpdater.Requests
                 Log.Error($"{LogMessages.RequestFailed}", i, endpoint, error);
                 if (i != _retryCount - 1) Thread.Sleep(_retryTimeout);
             }
-            //finish and sleep
-            return string.Empty;
+            throw new Exception($"{LogMessages.CrmNotResponding}");
         }
 
     }

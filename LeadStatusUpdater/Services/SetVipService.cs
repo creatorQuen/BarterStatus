@@ -24,22 +24,21 @@ namespace LeadStatusUpdater.Services
 
         public void Process()
         {
-
             _adminToken = _requests.GetAdminToken();
 
             var leads = new List<LeadOutputModel>();
             var leadsToChangeStatusList = new List<LeadIdAndRoleInputModel>();
             var leadsToLogAndEmail = new List<LeadOutputModel>();
-            int cursor = 0;
+            int lastLeadId = 0;
             int leadsCount = 0;
 
             do
             {
-                leads = _requests.GetRegularAndVipLeads(_adminToken, cursor);
+                leads = _requests.GetRegularAndVipLeads(_adminToken, lastLeadId);
+                leadsCount = leads.Count;
 
                 if (leads != null && leadsCount > 0)
                 {
-                    leadsCount = leads.Count;
                     Log.Information($"{leadsCount} leads were retrieved from database");
 
                     leads.ForEach(lead =>
@@ -55,7 +54,7 @@ namespace LeadStatusUpdater.Services
 
                     leadsToLogAndEmail.AddRange(leads.Where(l => leadsToChangeStatusList.Any(c => l.Id == c.Id)));
 
-                    cursor = leads.Last().Id;
+                    lastLeadId = leads.Last().Id;
                 }
             }
             while (leads != null && leadsCount > 0);
@@ -73,8 +72,8 @@ namespace LeadStatusUpdater.Services
         public bool CheckOneLead(LeadOutputModel lead)
         {
             return (
-                CheckBirthdayCondition(lead) ||
-                CheckOperationsCondition(lead) 
+                CheckBirthdayCondition(lead)
+                //||CheckOperationsCondition(lead) 
                 //||CheckBalanceCondition(lead)
                 );
         }
@@ -159,15 +158,19 @@ namespace LeadStatusUpdater.Services
         public bool CheckBirthdayCondition(LeadOutputModel lead)
         {
             var leadBirthDate = Convert.ToDateTime(lead.BirthDate);
-            if(leadBirthDate.Day == DateTime.Now.Day 
-                && leadBirthDate.Month == DateTime.Now.Month)
+
+            if (leadBirthDate <= DateTime.Today
+                && leadBirthDate >= DateTime.Today.AddDays(-Const.COUNT_DAY_AFTER_BDAY_FOR_VIP))
             {
-                //send email
+                if (leadBirthDate.Day == DateTime.Now.Day
+                && leadBirthDate.Month == DateTime.Now.Month)
+                {
+                    //send email
+                    return true;
+                }
                 return true;
             }
-
-            return leadBirthDate.Day <= DateTime.Now.Day
-                && leadBirthDate.Day >= DateTime.Now.AddDays(-Const.COUNT_DAY_AFTER_BDAY_FOR_VIP).Day;
+            return false;
         }
 
     }

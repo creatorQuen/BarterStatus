@@ -55,19 +55,6 @@ namespace LeadStatusUpdater
                         });
                     });
 
-
-                    //services.AddMassTransit(x =>
-                    //{
-                    //    x.AddConsumer<RatesConsumer>();
-                    //    x.UsingRabbitMq((context, cfg) =>
-                    //    {
-                    //        cfg.ReceiveEndpoint("rates-queue", e =>
-                    //        {
-                    //            e.ConfigureConsumer<RatesConsumer>(context);
-                    //        });
-                    //    });
-                    //});
-
                     services.AddMassTransitHostedService();
                 });
     }

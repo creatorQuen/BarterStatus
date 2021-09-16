@@ -34,27 +34,40 @@ namespace LeadStatusUpdater
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var attemt = 0;
+            var attempt = 0;
             while (!stoppingToken.IsCancellationRequested)
             {
                 Log.Information($"Cycle started at: {DateTime.Now}");
-                if (ConverterService.RatesModel == null && attemt < 1)
+                if (ConverterService.RatesModel == null && attempt < 1)
                 {
                     Log.Warning($"{LogMessages.RatesNotProvided} first time");
-                    attemt++;
-                    Thread.Sleep(_hourTimeSpan);
+                    attempt++;
+                    Thread.Sleep(2000);
                     continue;
                 }
-                if(ConverterService.RatesModel == null && attemt > 0)
+                if (ConverterService.RatesModel == null && attempt > 0)
                 {
+                    attempt = 0;
                     Log.Warning($"{LogMessages.RatesNotProvided} twice, finished cycle");
-                    await Task.Delay(_hourTimeSpan, stoppingToken);//timer
+                    await Task.Delay(2000, stoppingToken);//timer
                 }
                 else
                 {
-                    _service.Process();
-                    Log.Information($"Cycle finished successfully at: {DateTime.Now}");
-                    await Task.Delay(_hourTimeSpan, stoppingToken);//timer
+                    try
+                    {
+                    var tets = ConverterService.RatesModel;
+                        _service.Process();
+                        Log.Information($"Cycle finished successfully at: {DateTime.Now}");
+                    }
+                    catch(Exception ex)
+                    {
+                        Log.Error(ex.Message);
+                        //send email to admin
+                    }
+                    finally
+                    {
+                        await Task.Delay(2000, stoppingToken);//timer
+                    }
                 }
             }
         }
