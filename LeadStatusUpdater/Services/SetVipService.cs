@@ -15,8 +15,7 @@ namespace LeadStatusUpdater.Services
         private string _adminToken;
 
 
-        public SetVipService(IRequestsSender sender
-            )
+        public SetVipService(IRequestsSender sender)
         {
             _requests = sender;
 
@@ -50,7 +49,7 @@ namespace LeadStatusUpdater.Services
                         }
                     });
 
-                    //_requests.ChangeStatus(leadsToChangeStatusList, _adminToken); //change
+                    _requests.ChangeStatus(leadsToChangeStatusList, _adminToken); 
 
                     leadsToLogAndEmail.AddRange(leads.Where(l => leadsToChangeStatusList.Any(c => l.Id == c.Id)));
 
@@ -73,7 +72,7 @@ namespace LeadStatusUpdater.Services
         {
             return (
                 CheckBirthdayCondition(lead)
-                //||CheckOperationsCondition(lead) 
+                ||CheckOperationsCondition(lead) 
                 //||CheckBalanceCondition(lead)
                 );
         }
@@ -158,9 +157,10 @@ namespace LeadStatusUpdater.Services
         public bool CheckBirthdayCondition(LeadOutputModel lead)
         {
             var leadBirthDate = Convert.ToDateTime(lead.BirthDate);
+            var leadBirthdayInCurrentYear = new DateTime(DateTime.Now.Year, leadBirthDate.Month, leadBirthDate.Day);
 
-            if (leadBirthDate <= DateTime.Today
-                && leadBirthDate >= DateTime.Today.AddDays(-Const.COUNT_DAY_AFTER_BDAY_FOR_VIP))
+            if (leadBirthdayInCurrentYear.Date <= DateTime.Today.Date
+                && leadBirthdayInCurrentYear.Date >= DateTime.Today.AddDays(-Const.COUNT_DAY_AFTER_BDAY_FOR_VIP).Date)
             {
                 if (leadBirthDate.Day == DateTime.Now.Day
                 && leadBirthDate.Month == DateTime.Now.Month)

@@ -1,6 +1,7 @@
 ﻿using Exchange;
 using LeadStatusUpdater.Services;
 using MassTransit;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace LeadStatusUpdater.Common
@@ -10,7 +11,8 @@ namespace LeadStatusUpdater.Common
     {
         public async Task Consume(ConsumeContext<RatesExchangeModel> context)
         {
-            ConverterService.RatesModel = context.Message;
+            ConverterService.RatesModel = context.Message;            
+            await Task.CompletedTask;
         }
     }
 }

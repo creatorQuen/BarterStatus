@@ -41,6 +41,7 @@ namespace LeadStatusUpdater
                     services.AddHostedService<Worker>();
                     services.AddTransient<ISetVipService, SetVipService>();
                     services.AddTransient<IRequestsSender, RequestsSender>();
+                    services.AddTransient<EmailPublisher>();
 
                     services.AddMassTransit(x =>
                     {
@@ -48,6 +49,11 @@ namespace LeadStatusUpdater
                         x.SetKebabCaseEndpointNameFormatter();
                         x.UsingRabbitMq((context, cfg) =>
                         {
+                            //cfg.Host("80.78.240.16", h =>
+                            //{
+                            //    h.Username("nafanya");
+                            //    h.Password("qwe!23");
+                            //});
                             cfg.ReceiveEndpoint("rates-queue-test", e =>
                             {
                                 e.ConfigureConsumer<RatesConsumer>(context);

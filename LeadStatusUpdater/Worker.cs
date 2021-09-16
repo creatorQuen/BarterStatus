@@ -1,5 +1,10 @@
+using Exchange;
+using LeadStatusUpdater.Common;
 using LeadStatusUpdater.Constants;
+using LeadStatusUpdater.Models;
 using LeadStatusUpdater.Services;
+using MailExchange;
+using MassTransit;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using System;
@@ -11,11 +16,14 @@ namespace LeadStatusUpdater
     public class Worker : BackgroundService
     {
         private readonly ISetVipService _service;
+        private readonly EmailPublisher _emailPublisher;
+
 
         private int _hourTimeSpan = 3600000;
-
-        public Worker(ISetVipService service)
+        public Worker(ISetVipService service,
+            EmailPublisher emailPublisher)
         {
+            _emailPublisher = emailPublisher;
             _service = service;
         }
 
@@ -28,47 +36,56 @@ namespace LeadStatusUpdater
 
         public override async Task StopAsync(CancellationToken cancellationToken)
         {
+
             Log.Information($"Worker stopped at: {DateTime.Now}");
             await base.StopAsync(cancellationToken);
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            var attempt = 0;
             while (!stoppingToken.IsCancellationRequested)
             {
+                //if (ConverterService.RatesModel == null)
+                //{
+                //    await Task.Delay(2000, stoppingToken);
+                //    continue;
+                //}
+
+                //var attempt = 0;
+
                 Log.Information($"Cycle started at: {DateTime.Now}");
-                if (ConverterService.RatesModel == null && attempt < 1)
+                //if (ConverterService.RatesModel == null && attempt < 1)
+                //{
+                //    Log.Warning($"{LogMessages.RatesNotProvided} first time");
+                //    attempt++;
+                //    Thread.Sleep(2000);
+                //    continue;
+                //}
+                //if (ConverterService.RatesModel == null && attempt > 0)
+                //{
+                //    attempt = 0;
+                //    Log.Warning($"{LogMessages.RatesNotProvided} twice, finished cycle");
+                //    await Task.Delay(2000, stoppingToken);//timer
+                //}
+                //else
+                //{
+                try
                 {
-                    Log.Warning($"{LogMessages.RatesNotProvided} first time");
-                    attempt++;
-                    Thread.Sleep(2000);
-                    continue;
+                    _service.Process();
+                    Log.Information($"Cycle finished successfully at: {DateTime.Now}");
                 }
-                if (ConverterService.RatesModel == null && attempt > 0)
+                catch (Exception ex)
                 {
-                    attempt = 0;
-                    Log.Warning($"{LogMessages.RatesNotProvided} twice, finished cycle");
+                    Log.Fatal(ex.Message);
+                    var msg = new EmailModel { Subject = "AAa", Body = "QQQQ"};
+                        
+                    await _emailPublisher.PublishEmail(msg);
+                }
+                finally
+                {
                     await Task.Delay(2000, stoppingToken);//timer
                 }
-                else
-                {
-                    try
-                    {
-                    var tets = ConverterService.RatesModel;
-                        _service.Process();
-                        Log.Information($"Cycle finished successfully at: {DateTime.Now}");
-                    }
-                    catch(Exception ex)
-                    {
-                        Log.Error(ex.Message);
-                        //send email to admin
-                    }
-                    finally
-                    {
-                        await Task.Delay(2000, stoppingToken);//timer
-                    }
-                }
+                //}
             }
         }
     }

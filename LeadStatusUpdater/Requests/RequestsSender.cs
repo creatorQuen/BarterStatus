@@ -83,12 +83,32 @@ namespace LeadStatusUpdater.Requests
             throw new Exception($"{LogMessages.CrmNotResponding}");
         }
 
-        public LeadOutputModel ChangeStatus(int leadId, Role status, string adminToken) //change
+        public int ChangeStatus(List<LeadIdAndRoleInputModel> model, string adminToken) //change
         {
-            var endpoint = string.Format(Endpoints.ChangeStatusEndpoint, leadId, status);
-            var request = _requestHelper.CreatePutRequest(endpoint, status, adminToken);
-            var response = _client.Execute<LeadOutputModel>(request);
-            return response.Data;
+            var endpoint = Endpoints.ChangeRoleEndpoint;
+            IRestResponse<int> response;
+
+            for (int i = 1; i <= _retryCount; i++)
+            {
+                var request = _requestHelper.CreatePutRequest(endpoint, model, adminToken);
+                response = _client.Execute<int>(request);
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    //Log.Information($"{LogMessages.RequestResult}", endpoint, response.StatusCode);
+                    return response.Data;
+                }
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    Log.Warning($"{LogMessages.RequestResult}", endpoint, response.StatusCode);
+                    adminToken = GetAdminToken();
+                    i--;
+                    continue;
+                }
+                var error = response.ErrorMessage == default ? response.Content : response.ErrorMessage;
+                Log.Error($"{LogMessages.RequestFailed}", i, endpoint, error);
+                if (i != _retryCount - 1) Thread.Sleep(_retryTimeout);
+            }
+            throw new Exception($"{LogMessages.CrmNotResponding}");
         }
 
         public string GetAdminToken()
