@@ -28,7 +28,7 @@ namespace LeadStatusUpdater.Services
             _emailPublisher = emailPublisher;
         }
 
-        public async Task Process()
+        public void Process()
         {
             _adminToken = _requests.GetAdminToken();
 
@@ -47,9 +47,9 @@ namespace LeadStatusUpdater.Services
                 {
                     Log.Information($"{leadsCount} leads were retrieved from database");
 
-                    leads.ForEach(async lead =>
+                    leads.ForEach(lead =>
                     {
-                        var newRole = await CheckOneLead(lead) ? Role.Vip : Role.Regular;
+                        var newRole = CheckOneLead(lead) ? Role.Vip : Role.Regular;
                         if (lead.Role != newRole)
                         {
                             leadsToChangeStatusList.Add(new LeadIdAndRoleInputModel { Id = lead.Id, Role = newRole });
@@ -72,21 +72,21 @@ namespace LeadStatusUpdater.Services
                 logMessage = string.Format(logMessage, lead.Id, lead.LastName, lead.FirstName, lead.Patronymic, lead.Email);
                 Log.Information(logMessage);
 
-                await _emailPublisher.PublishEmail(new EmailModel 
-                { 
+                Task.Run(() => _emailPublisher.PublishEmail(new EmailModel
+                {
                     Subject = "Status changed", //add to consts
                     Body = $"You status has been changed to {lead.Role}",
                     MailAddresses = lead.Email
-                });
+                })).Wait();
             }
         }
 
-        public async Task <bool> CheckOneLead(LeadOutputModel lead)
+        public bool CheckOneLead(LeadOutputModel lead)
         {
             return (
-                await CheckBirthdayCondition(lead)
-                //||CheckOperationsCondition(lead) 
-                //||CheckBalanceCondition(lead)
+                CheckBirthdayCondition(lead)
+                ||CheckOperationsCondition(lead) 
+                ||CheckBalanceCondition(lead)
                 );
         }
 
@@ -167,7 +167,7 @@ namespace LeadStatusUpdater.Services
             return (sum > Const.SUM_DIFFERENCE_DEPOSIT_AND_WITHRAW_FOR_VIP);
         }
 
-        public async Task<bool> CheckBirthdayCondition(LeadOutputModel lead)
+        public bool CheckBirthdayCondition(LeadOutputModel lead)
         {
             var leadBirthDate = Convert.ToDateTime(lead.BirthDate);
             var leadBirthdayInCurrentYear = new DateTime(DateTime.Now.Year, leadBirthDate.Month, leadBirthDate.Day);
@@ -178,13 +178,13 @@ namespace LeadStatusUpdater.Services
                 if (leadBirthDate.Day == DateTime.Now.Day
                 && leadBirthDate.Month == DateTime.Now.Month)
                 {
-                    await _emailPublisher.PublishEmail(new EmailModel
+                    Task.Run(() => _emailPublisher.PublishEmail(new EmailModel
                     {
                         Subject = "Happy birthday",//add to consts
                         Body = $"Dear, {lead.LastName} {lead.FirstName}! Happy Birthday!",
                         MailAddresses = lead.Email
-                    });
-                    
+                    })).Wait();
+
                     return true;
                 }
                 return true;

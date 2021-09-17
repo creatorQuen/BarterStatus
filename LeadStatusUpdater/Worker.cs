@@ -52,7 +52,7 @@ namespace LeadStatusUpdater
                 await _emailPublisher.PublishEmail(new EmailModel { Subject = "START", Body = $"Updater started at: {DateTime.Now}", MailAddresses = "merymal2696@gmail.com" });//add to consts
                 try
                 {
-                    await _service.Process();
+                    _service.Process();
                     Log.Information($"Cycle finished successfully at: {DateTime.Now}");
                 }
                 catch (Exception ex)
