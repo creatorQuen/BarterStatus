@@ -74,8 +74,8 @@ namespace LeadStatusUpdater.Services
 
                 Task.Run(() => _emailPublisher.PublishEmail(new EmailModel
                 {
-                    Subject = "Status changed", //add to consts
-                    Body = $"You status has been changed to {lead.Role}",
+                    Subject = EmailMessage.StatusChangedSubject, 
+                    Body = String.Format( EmailMessage.StatusChangedBody, lead.Role),
                     MailAddresses = lead.Email
                 })).Wait();
             }
@@ -148,8 +148,8 @@ namespace LeadStatusUpdater.Services
                 {
                     Task.Run(() => _emailPublisher.PublishEmail(new EmailModel
                     {
-                        Subject = "Happy birthday",//add to consts
-                        Body = $"Dear, {lead.LastName} {lead.FirstName}! Happy Birthday!",
+                        Subject = EmailMessage.HappyBirthdaySubject,
+                        Body = String.Format(EmailMessage.HappyrthdayBody, lead.LastName, lead.FirstName),
                         MailAddresses = lead.Email
                     })).Wait();
 
