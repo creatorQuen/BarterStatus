@@ -9,6 +9,6 @@ namespace LeadStatusUpdater.Services
         Task<bool> CheckBirthdayCondition(LeadOutputModel lead);
         Task <bool> CheckOneLead(LeadOutputModel lead);
         bool CheckOperationsCondition(LeadOutputModel lead);
-        Task Process();
+        void Process(object obj);
     }
 }
