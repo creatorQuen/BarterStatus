@@ -18,8 +18,6 @@ namespace LeadStatusUpdater
         private readonly ISetVipService _service;
         private readonly EmailPublisher _emailPublisher;
 
-
-        private int _hourTimeSpan = 3600000;
         public Worker(ISetVipService service,
             EmailPublisher emailPublisher)
         {
@@ -44,47 +42,28 @@ namespace LeadStatusUpdater
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                if (ConverterService.RatesModel == null)
-                {
-                    await Task.Delay(2000, stoppingToken);
-                    continue;
-                }
-
-                //var attempt = 0;
-
-                Log.Information($"Cycle started at: {DateTime.Now}");
-                //if (ConverterService.RatesModel == null && attempt < 1)
+                //if (ConverterService.RatesModel == null)
                 //{
-                //    Log.Warning($"{LogMessages.RatesNotProvided} first time");
-                //    attempt++;
-                //    Thread.Sleep(2000);
+                //    await Task.Delay(2000, stoppingToken);
                 //    continue;
                 //}
-                //if (ConverterService.RatesModel == null && attempt > 0)
-                //{
-                //    attempt = 0;
-                //    Log.Warning($"{LogMessages.RatesNotProvided} twice, finished cycle");
-                //    await Task.Delay(2000, stoppingToken);//timer
-                //}
-                //else
-                //{
+
+                Log.Information($"Cycle started at: {DateTime.Now}");
+                await _emailPublisher.PublishEmail(new EmailModel { Subject = "START", Body = $"Updater started at: {DateTime.Now}", MailAddresses = "merymal2696@gmail.com" });//add to consts
                 try
                 {
-                    _service.Process();
+                    await _service.Process();
                     Log.Information($"Cycle finished successfully at: {DateTime.Now}");
                 }
                 catch (Exception ex)
                 {
                     Log.Fatal(ex.Message);
-                    var msg = new EmailModel { Subject = "AAa", Body = "QQQQ"};
-                        
-                    await _emailPublisher.PublishEmail(msg);
+                    await _emailPublisher.PublishEmail(new EmailModel { Subject = "PIZDA", Body = "VSE SLOMALOSYA", MailAddresses = "merymal2696@gmail.com" });//add to consts
                 }
                 finally
                 {
                     await Task.Delay(2000, stoppingToken);//timer
                 }
-                //}
             }
         }
     }

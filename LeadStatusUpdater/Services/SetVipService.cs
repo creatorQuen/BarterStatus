@@ -1,10 +1,12 @@
-﻿using LeadStatusUpdater.Constants;
+﻿using LeadStatusUpdater.Common;
+using LeadStatusUpdater.Constants;
 using LeadStatusUpdater.Enums;
 using LeadStatusUpdater.Models;
 using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace LeadStatusUpdater.Services
 {
@@ -12,18 +14,21 @@ namespace LeadStatusUpdater.Services
     {
         private IRequestsSender _requests;
         private IConverterService _converter;
+        private readonly EmailPublisher _emailPublisher;
         private const string _dateFormatWithMinutesAndSeconds = "dd.MM.yyyy HH:mm";
         private string _adminToken;
 
 
         public SetVipService(IRequestsSender sender,
-            IConverterService converter)
+            IConverterService converter,
+            EmailPublisher emailPublisher)
         {
             _requests = sender;
             _converter = converter;
+            _emailPublisher = emailPublisher;
         }
 
-        public void Process()
+        public async Task Process()
         {
             _adminToken = _requests.GetAdminToken();
 
@@ -42,9 +47,9 @@ namespace LeadStatusUpdater.Services
                 {
                     Log.Information($"{leadsCount} leads were retrieved from database");
 
-                    leads.ForEach(lead =>
+                    leads.ForEach(async lead =>
                     {
-                        var newRole = CheckOneLead(lead) ? Role.Vip : Role.Regular;
+                        var newRole = await CheckOneLead(lead) ? Role.Vip : Role.Regular;
                         if (lead.Role != newRole)
                         {
                             leadsToChangeStatusList.Add(new LeadIdAndRoleInputModel { Id = lead.Id, Role = newRole });
@@ -66,16 +71,22 @@ namespace LeadStatusUpdater.Services
                 string logMessage = lead.Role == Role.Vip ? $"{LogMessages.VipStatusGiven} " : $"{LogMessages.VipStatusTaken} ";
                 logMessage = string.Format(logMessage, lead.Id, lead.LastName, lead.FirstName, lead.Patronymic, lead.Email);
                 Log.Information(logMessage);
-                //send email about status change
+
+                await _emailPublisher.PublishEmail(new EmailModel 
+                { 
+                    Subject = "Status changed", //add to consts
+                    Body = $"You status has been changed to {lead.Role}",
+                    MailAddresses = lead.Email
+                });
             }
         }
 
-        public bool CheckOneLead(LeadOutputModel lead)
+        public async Task <bool> CheckOneLead(LeadOutputModel lead)
         {
             return (
-                CheckBirthdayCondition(lead)
-                //|CheckOperationsCondition(lead) 
-                ||CheckBalanceCondition(lead)
+                await CheckBirthdayCondition(lead)
+                //||CheckOperationsCondition(lead) 
+                //||CheckBalanceCondition(lead)
                 );
         }
 
@@ -156,7 +167,7 @@ namespace LeadStatusUpdater.Services
             return (sum > Const.SUM_DIFFERENCE_DEPOSIT_AND_WITHRAW_FOR_VIP);
         }
 
-        public bool CheckBirthdayCondition(LeadOutputModel lead)
+        public async Task<bool> CheckBirthdayCondition(LeadOutputModel lead)
         {
             var leadBirthDate = Convert.ToDateTime(lead.BirthDate);
             var leadBirthdayInCurrentYear = new DateTime(DateTime.Now.Year, leadBirthDate.Month, leadBirthDate.Day);
@@ -167,7 +178,13 @@ namespace LeadStatusUpdater.Services
                 if (leadBirthDate.Day == DateTime.Now.Day
                 && leadBirthDate.Month == DateTime.Now.Month)
                 {
-                    //send email
+                    await _emailPublisher.PublishEmail(new EmailModel
+                    {
+                        Subject = "Happy birthday",//add to consts
+                        Body = $"Dear, {lead.LastName} {lead.FirstName}! Happy Birthday!",
+                        MailAddresses = lead.Email
+                    });
+                    
                     return true;
                 }
                 return true;

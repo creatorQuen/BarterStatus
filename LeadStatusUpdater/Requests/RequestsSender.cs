@@ -1,5 +1,4 @@
 ﻿using LeadStatusUpdater.Constants;
-using LeadStatusUpdater.Enums;
 using LeadStatusUpdater.Models;
 using LeadStatusUpdater.Settings;
 using Microsoft.Extensions.Options;
@@ -50,7 +49,7 @@ namespace LeadStatusUpdater.Requests
                 }
                 var error = response.ErrorMessage == default ? response.Content : response.ErrorMessage;
                 Log.Error($"{LogMessages.RequestFailed}", i, endpoint, error);
-                if (i != _retryCount - 1) Thread.Sleep(_retryTimeout);
+                if (i != _retryCount) Thread.Sleep(_retryTimeout);
             }
             throw new Exception($"{LogMessages.CrmNotResponding}");
         }
@@ -66,7 +65,6 @@ namespace LeadStatusUpdater.Requests
                 response = _client.Execute<List<AccountBusinessModel>>(request);
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    //Log.Information($"{LogMessages.RequestResult}", endpoint, response.StatusCode);
                     return response.Data;
                 }
                 if (response.StatusCode == HttpStatusCode.Unauthorized)
@@ -78,7 +76,7 @@ namespace LeadStatusUpdater.Requests
                 }
                 var error = response.ErrorMessage == default ? response.Content : response.ErrorMessage;
                 Log.Error($"{LogMessages.RequestFailed}", i, endpoint, error);
-                if (i != _retryCount - 1) Thread.Sleep(_retryTimeout);
+                if (i != _retryCount) Thread.Sleep(_retryTimeout);
             }
             throw new Exception($"{LogMessages.CrmNotResponding}");
         }
@@ -94,7 +92,6 @@ namespace LeadStatusUpdater.Requests
                 response = _client.Execute<int>(request);
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
-                    //Log.Information($"{LogMessages.RequestResult}", endpoint, response.StatusCode);
                     return response.Data;
                 }
                 if (response.StatusCode == HttpStatusCode.Unauthorized)
@@ -106,7 +103,7 @@ namespace LeadStatusUpdater.Requests
                 }
                 var error = response.ErrorMessage == default ? response.Content : response.ErrorMessage;
                 Log.Error($"{LogMessages.RequestFailed}", i, endpoint, error);
-                if (i != _retryCount - 1) Thread.Sleep(_retryTimeout);
+                if (i != _retryCount) Thread.Sleep(_retryTimeout);
             }
             throw new Exception($"{LogMessages.CrmNotResponding}");
         }
@@ -128,10 +125,9 @@ namespace LeadStatusUpdater.Requests
                 }
                 var error = response.ErrorMessage == default ? response.Content : response.ErrorMessage;
                 Log.Error($"{LogMessages.RequestFailed}", i, endpoint, error);
-                if (i != _retryCount - 1) Thread.Sleep(_retryTimeout);
+                if (i != _retryCount) Thread.Sleep(_retryTimeout);
             }
             throw new Exception($"{LogMessages.CrmNotResponding}");
         }
-
     }
 }

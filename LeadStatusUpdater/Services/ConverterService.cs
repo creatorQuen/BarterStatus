@@ -1,4 +1,6 @@
 ﻿using Exchange;
+using LeadStatusUpdater.Constants;
+using Serilog;
 using System;
 
 namespace LeadStatusUpdater.Services
@@ -11,6 +13,10 @@ namespace LeadStatusUpdater.Services
 
         public decimal ConvertAmount(string senderCurrency, string recipientCurrency, decimal amount)
         {
+            if(RatesModel == null)
+            {
+                throw new Exception(LogMessages.RatesNotProvided);
+            }
             _baseCurrency = RatesModel.BaseCurrency;
 
             RatesModel.Rates.TryGetValue($"{_baseCurrency}{senderCurrency}", out var senderCurrencyValue);
@@ -23,7 +29,7 @@ namespace LeadStatusUpdater.Services
             if (recipientCurrency == _baseCurrency)
                 recipientCurrencyValue = 1m;
 
-            return Decimal.Round((recipientCurrencyValue / senderCurrencyValue * amount), 3);
+            return Decimal.Round(recipientCurrencyValue / senderCurrencyValue * amount, 3);
         }
     }
 }

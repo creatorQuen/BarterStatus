@@ -15,18 +15,18 @@ namespace LeadStatusUpdater.Common
             _busControl = Bus.Factory.CreateUsingRabbitMq(configure: cfg =>
             {
                 // 5672 Основной порт RabbitMQ
-                cfg.Host("localhost", h =>
+                cfg.Host("80.78.240.16", "/", h =>
                 {
-                    h.Username("guest");
-                    h.Password("guest");
+                    h.Username("nafanya");
+                    h.Password("qwe!23");
                 });
             });
         }
         public async Task PublishEmail(EmailModel message)
         {
-            var source = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            //var source = new CancellationTokenSource(TimeSpan.FromSeconds(10));
 
-            await _busControl.StartAsync(source.Token);
+            await _busControl.StartAsync();
             try
             {
                 
@@ -34,7 +34,7 @@ namespace LeadStatusUpdater.Common
                 {
                     Subject = message.Subject,
                     Body = message.Body,
-                    MailAddresses = "merymal2696@gmail.com"
+                    MailAddresses = message.MailAddresses
                 });
             }
             finally
