@@ -36,7 +36,6 @@ namespace LeadStatusUpdater
 
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
-            //sleep until 3.30
             Log.Information($"Worker started at: {DateTime.Now}");
             await base.StartAsync(cancellationToken);
         }
@@ -73,12 +72,13 @@ namespace LeadStatusUpdater
                 }
                 finally
                 {
-                    await Task.Delay(2000, stoppingToken);//timer
+                    var sleepTime = HowTimeSleep();
+                    await Task.Delay(sleepTime, stoppingToken);//timer
                 }
             }
         }
 
-        public void HowTimeSleep()
+        public int HowTimeSleep()
         {
             int sleepTime;
             var nowMiliS = (long)((DateTime.Now.TimeOfDay).TotalMilliseconds);
@@ -93,6 +93,7 @@ namespace LeadStatusUpdater
             }
 
             Thread.Sleep(sleepTime);
+            return sleepTime;
         }
 
         private void SetTimer()
