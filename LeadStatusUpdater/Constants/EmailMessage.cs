@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace LeadStatusUpdater.Constants
+﻿namespace LeadStatusUpdater.Constants
 {
-    class EmailMessage
+    public class EmailMessage
     {
+        public static string StatusChangedSubject = "Status changed";
+        public static string StatusChangedBody = "You status has been changed to {0}.";
+        public static string HappyBirthdaySubject = "Happy birthday";
+        public static string HappyrthdayBody = "Dear, {0} {1}! Happy Birthday!";
     }
 }
