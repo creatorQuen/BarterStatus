@@ -28,7 +28,7 @@ namespace LeadStatusUpdater.Services
             _emailPublisher = emailPublisher;
         }
 
-        public void Process()
+        public void Process(object obj)
         {
             _adminToken = _requests.GetAdminToken();
 
