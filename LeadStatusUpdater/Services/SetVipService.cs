@@ -1,6 +1,7 @@
 ﻿using LeadStatusUpdater.Common;
 using LeadStatusUpdater.Constants;
 using LeadStatusUpdater.Enums;
+using LeadStatusUpdater.Extensions;
 using LeadStatusUpdater.Models;
 using Serilog;
 using System;
@@ -15,7 +16,6 @@ namespace LeadStatusUpdater.Services
         private IRequestsSender _requests;
         private IConverterService _converter;
         private readonly EmailPublisher _emailPublisher;
-        private const string _dateFormatWithMinutesAndSeconds = "dd.MM.yyyy HH:mm";
         private string _adminToken;
 
 
@@ -28,7 +28,7 @@ namespace LeadStatusUpdater.Services
             _emailPublisher = emailPublisher;
         }
 
-        public async void Process(object obj)
+        public void Process()
         {
             _adminToken = _requests.GetAdminToken();
 
@@ -47,9 +47,9 @@ namespace LeadStatusUpdater.Services
                 {
                     Log.Information($"{leadsCount} leads were retrieved from database");
 
-                    leads.ForEach(async lead =>
+                    leads.ForEach(lead =>
                     {
-                        var newRole = await CheckOneLead(lead) ? Role.Vip : Role.Regular;
+                        var newRole = CheckOneLead(lead) ? Role.Vip : Role.Regular;
                         if (lead.Role != newRole)
                         {
                             leadsToChangeStatusList.Add(new LeadIdAndRoleInputModel { Id = lead.Id, Role = newRole });
@@ -72,21 +72,21 @@ namespace LeadStatusUpdater.Services
                 logMessage = string.Format(logMessage, lead.Id, lead.LastName, lead.FirstName, lead.Patronymic, lead.Email);
                 Log.Information(logMessage);
 
-                await _emailPublisher.PublishEmail(new EmailModel 
-                { 
-                    Subject = "Status changed", //add to consts
-                    Body = $"You status has been changed to {lead.Role}",
+                Task.Run(() => _emailPublisher.PublishEmail(new EmailModel
+                {
+                    Subject = EmailMessage.StatusChangedSubject, 
+                    Body = String.Format( EmailMessage.StatusChangedBody, lead.Role),
                     MailAddresses = lead.Email
-                });
+                })).Wait();
             }
         }
 
-        public async Task <bool> CheckOneLead(LeadOutputModel lead)
+        public bool CheckOneLead(LeadOutputModel lead)
         {
             return (
-                await CheckBirthdayCondition(lead)
-                //||CheckOperationsCondition(lead) 
-                //||CheckBalanceCondition(lead)
+                CheckBirthdayCondition(lead)
+                ||CheckOperationsCondition(lead) 
+                ||CheckBalanceCondition(lead)
                 );
         }
 
@@ -96,14 +96,8 @@ namespace LeadStatusUpdater.Services
             int transactionsCount = 0;
             foreach (var account in lead.Accounts)
             {
-                TimeBasedAcquisitionInputModel period = new TimeBasedAcquisitionInputModel
-                {
-                    To = DateTime.Now.ToString(_dateFormatWithMinutesAndSeconds),
-                    From = DateTime.Now.AddDays(-Const.PERIOD_FOR_CHECK_TRANSACTIONS_FOR_VIP).ToString(_dateFormatWithMinutesAndSeconds),
-                    AccountId = account.Id
-                };
-
-                var transactions = _requests.GetTransactionsByPeriod(period, _adminToken).FirstOrDefault();
+                var transactions = this.GetTransactionsByPeriod(_requests, _adminToken, Const.PERIOD_FOR_CHECK_TRANSACTIONS_FOR_VIP, account.Id)
+                    .FirstOrDefault();
 
                 if (transactions.Transactions != null && transactions.Transactions.Count > 0)
                 {
@@ -124,50 +118,24 @@ namespace LeadStatusUpdater.Services
         {
             decimal sum = 0;
 
-            TimeBasedAcquisitionInputModel period = new TimeBasedAcquisitionInputModel
+            foreach (var account in lead.Accounts)
             {
-                To = DateTime.Now.ToString(_dateFormatWithMinutesAndSeconds),
-                From = DateTime.Now.AddDays(-Const.PERIOD_FOR_CHECK_SUM_FOR_VIP).ToString(_dateFormatWithMinutesAndSeconds),
-                AccountId = lead.Id
-            };
+                var transactions = this.GetTransactionsByPeriod(_requests, _adminToken, Const.PERIOD_FOR_CHECK_SUM_FOR_VIP, account.Id)
+                    .FirstOrDefault();
 
-            var transactions = _requests.GetTransactionsByPeriod(period, _adminToken).FirstOrDefault();
-
-            if(transactions.Transactions != null && transactions.Transactions.Count > 0)
-            {
-                foreach (var transaction in transactions.Transactions)
+                if (transactions.Transactions != null && transactions.Transactions.Count > 0)
                 {
-                    if (transaction.TransactionType == TransactionType.Deposit)
-                    {
-                        if (transaction.Currency == Currency.RUB)
-                        {
-                            sum += transaction.Amount;
-                        }
-                        else
-                        {
-                            var convertedAmount = _converter.ConvertAmount(transaction.Currency.ToString(), Currency.RUB.ToString(), transaction.Amount);
-                            sum += convertedAmount;
-                        }
-                    }
-                    else if (transaction.TransactionType == TransactionType.Withdraw)
-                    {
-                        if (transaction.Currency == Currency.RUB)
-                        {
-                            sum -= transaction.Amount;
-                        }
-                        else
-                        {
-                            var convertedAmount = _converter.ConvertAmount(transaction.Currency.ToString(), Currency.RUB.ToString(), transaction.Amount);
-                            sum -= convertedAmount;
-                        }
-                    }
+                    transactions.Transactions.ForEach( transaction =>
+                        sum += transaction.Currency == Currency.RUB ?
+                            transaction.Amount : _converter.ConvertAmount(transaction.Currency.ToString(), Currency.RUB.ToString(), transaction.Amount)
+                        );
                 }
-            }
+            }            
 
-            return (sum > Const.SUM_DIFFERENCE_DEPOSIT_AND_WITHRAW_FOR_VIP);
+            return sum > Const.SUM_DIFFERENCE_DEPOSIT_AND_WITHRAW_FOR_VIP;
         }
 
-        public async Task<bool> CheckBirthdayCondition(LeadOutputModel lead)
+        public bool CheckBirthdayCondition(LeadOutputModel lead)
         {
             var leadBirthDate = Convert.ToDateTime(lead.BirthDate);
             var leadBirthdayInCurrentYear = new DateTime(DateTime.Now.Year, leadBirthDate.Month, leadBirthDate.Day);
@@ -178,13 +146,13 @@ namespace LeadStatusUpdater.Services
                 if (leadBirthDate.Day == DateTime.Now.Day
                 && leadBirthDate.Month == DateTime.Now.Month)
                 {
-                    await _emailPublisher.PublishEmail(new EmailModel
+                    Task.Run(() => _emailPublisher.PublishEmail(new EmailModel
                     {
-                        Subject = "Happy birthday",//add to consts
-                        Body = $"Dear, {lead.LastName} {lead.FirstName}! Happy Birthday!",
+                        Subject = EmailMessage.HappyBirthdaySubject,
+                        Body = String.Format(EmailMessage.HappyrthdayBody, lead.LastName, lead.FirstName),
                         MailAddresses = lead.Email
-                    });
-                    
+                    })).Wait();
+
                     return true;
                 }
                 return true;
