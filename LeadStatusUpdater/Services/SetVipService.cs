@@ -1,6 +1,7 @@
 ﻿using LeadStatusUpdater.Common;
 using LeadStatusUpdater.Constants;
 using LeadStatusUpdater.Enums;
+using LeadStatusUpdater.Extensions;
 using LeadStatusUpdater.Models;
 using Serilog;
 using System;
@@ -15,7 +16,6 @@ namespace LeadStatusUpdater.Services
         private IRequestsSender _requests;
         private IConverterService _converter;
         private readonly EmailPublisher _emailPublisher;
-        private const string _dateFormatWithMinutesAndSeconds = "dd.MM.yyyy HH:mm";
         private string _adminToken;
 
 
@@ -96,14 +96,8 @@ namespace LeadStatusUpdater.Services
             int transactionsCount = 0;
             foreach (var account in lead.Accounts)
             {
-                TimeBasedAcquisitionInputModel period = new TimeBasedAcquisitionInputModel
-                {
-                    To = DateTime.Now.ToString(_dateFormatWithMinutesAndSeconds),
-                    From = DateTime.Now.AddDays(-Const.PERIOD_FOR_CHECK_TRANSACTIONS_FOR_VIP).ToString(_dateFormatWithMinutesAndSeconds),
-                    AccountId = account.Id
-                };
-
-                var transactions = _requests.GetTransactionsByPeriod(period, _adminToken).FirstOrDefault();
+                var transactions = this.GetTransactionsByPeriod(_requests, _adminToken, Const.PERIOD_FOR_CHECK_TRANSACTIONS_FOR_VIP, account.Id)
+                    .FirstOrDefault();
 
                 if (transactions.Transactions != null && transactions.Transactions.Count > 0)
                 {
@@ -124,47 +118,21 @@ namespace LeadStatusUpdater.Services
         {
             decimal sum = 0;
 
-            TimeBasedAcquisitionInputModel period = new TimeBasedAcquisitionInputModel
+            foreach (var account in lead.Accounts)
             {
-                To = DateTime.Now.ToString(_dateFormatWithMinutesAndSeconds),
-                From = DateTime.Now.AddDays(-Const.PERIOD_FOR_CHECK_SUM_FOR_VIP).ToString(_dateFormatWithMinutesAndSeconds),
-                AccountId = lead.Id
-            };
+                var transactions = this.GetTransactionsByPeriod(_requests, _adminToken, Const.PERIOD_FOR_CHECK_SUM_FOR_VIP, account.Id)
+                    .FirstOrDefault();
 
-            var transactions = _requests.GetTransactionsByPeriod(period, _adminToken).FirstOrDefault();
-
-            if(transactions.Transactions != null && transactions.Transactions.Count > 0)
-            {
-                foreach (var transaction in transactions.Transactions)
+                if (transactions.Transactions != null && transactions.Transactions.Count > 0)
                 {
-                    if (transaction.TransactionType == TransactionType.Deposit)
-                    {
-                        if (transaction.Currency == Currency.RUB)
-                        {
-                            sum += transaction.Amount;
-                        }
-                        else
-                        {
-                            var convertedAmount = _converter.ConvertAmount(transaction.Currency.ToString(), Currency.RUB.ToString(), transaction.Amount);
-                            sum += convertedAmount;
-                        }
-                    }
-                    else if (transaction.TransactionType == TransactionType.Withdraw)
-                    {
-                        if (transaction.Currency == Currency.RUB)
-                        {
-                            sum -= transaction.Amount;
-                        }
-                        else
-                        {
-                            var convertedAmount = _converter.ConvertAmount(transaction.Currency.ToString(), Currency.RUB.ToString(), transaction.Amount);
-                            sum -= convertedAmount;
-                        }
-                    }
+                    transactions.Transactions.ForEach( transaction =>
+                        sum += transaction.Currency == Currency.RUB ?
+                            transaction.Amount : _converter.ConvertAmount(transaction.Currency.ToString(), Currency.RUB.ToString(), transaction.Amount)
+                        );
                 }
-            }
+            }            
 
-            return (sum > Const.SUM_DIFFERENCE_DEPOSIT_AND_WITHRAW_FOR_VIP);
+            return sum > Const.SUM_DIFFERENCE_DEPOSIT_AND_WITHRAW_FOR_VIP;
         }
 
         public bool CheckBirthdayCondition(LeadOutputModel lead)
