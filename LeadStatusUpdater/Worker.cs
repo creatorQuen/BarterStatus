@@ -42,14 +42,14 @@ namespace LeadStatusUpdater
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                //if (ConverterService.RatesModel == null)
-                //{
-                //    await Task.Delay(2000, stoppingToken);
-                //    continue;
-                //}
-
+                if (ConverterService.RatesModel == null)
+                {
+                    await Task.Delay(2000, stoppingToken);
+                    continue;
+                }
+                _emailPublisher.Sart();
                 Log.Information($"Cycle started at: {DateTime.Now}");
-                await _emailPublisher.PublishEmail(new EmailModel { Subject = "START", Body = $"Updater started at: {DateTime.Now}", MailAddresses = "merymal2696@gmail.com" });//add to consts
+                //await _emailPublisher.PublishEmail(new EmailModel { Subject = "START", Body = $"Updater started at: {DateTime.Now}", DisplayName = "StatusUpdater", MailAddresses = "merymal2696@gmail.com" });//add to consts
                 try
                 {
                     _service.Process();
@@ -58,10 +58,11 @@ namespace LeadStatusUpdater
                 catch (Exception ex)
                 {
                     Log.Fatal(ex.Message);
-                    await _emailPublisher.PublishEmail(new EmailModel { Subject = "PIZDA", Body = "VSE SLOMALOSYA", MailAddresses = "merymal2696@gmail.com" });//add to consts
+                    await _emailPublisher.PublishEmail(new EmailModel { Subject = "PIZDA", Body = $"VSE SLOMALOSYA: {ex.Message}", DisplayName = "StatusUpdater", MailAddresses = "merymal2696@gmail.com" });//add to consts
                 }
                 finally
                 {
+                    _emailPublisher.Stop();
                     await Task.Delay(2000, stoppingToken);//timer
                 }
             }
