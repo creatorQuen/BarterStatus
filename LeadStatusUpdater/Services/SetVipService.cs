@@ -15,13 +15,13 @@ namespace LeadStatusUpdater.Services
     {
         private IRequestsSender _requests;
         private IConverterService _converter;
-        private readonly EmailPublisher _emailPublisher;
+        private readonly RabbitMqPublisher _emailPublisher;
         private string _adminToken;
 
 
         public SetVipService(IRequestsSender sender,
             IConverterService converter,
-            EmailPublisher emailPublisher)
+            RabbitMqPublisher emailPublisher)
         {
             _requests = sender;
             _converter = converter;
@@ -68,24 +68,20 @@ namespace LeadStatusUpdater.Services
 
             Log.Information($"All leads were processed");
 
-            foreach (var lead in leadsToLogAndEmail) //change to async
+            foreach (var lead in leadsToLogAndEmail) 
             {
                 string logMessage = lead.Role == Role.Vip ? $"{LogMessages.VipStatusGiven} " : $"{LogMessages.VipStatusTaken} ";
                 logMessage = string.Format(logMessage, lead.Id, lead.LastName, lead.FirstName, lead.Patronymic, lead.Email);
                 Log.Information(logMessage);
             }
 
-            foreach (var lead in leadsToLogAndEmail) //change to async
+            foreach (var lead in leadsToLogAndEmail)
             {
                 string logMessage = lead.Role == Role.Vip ? $"{LogMessages.VipStatusGiven} " : $"{LogMessages.VipStatusTaken} ";
                 logMessage = string.Format(logMessage, lead.Id, lead.LastName, lead.FirstName, lead.Patronymic, lead.Email);
 
-                Task.Run(() => _emailPublisher.PublishEmail(new EmailModel
-                {
-                    Subject = EmailMessage.StatusChangedSubject,
-                    Body = String.Format(EmailMessage.StatusChangedBody, lead.Role),
-                    MailAddresses = lead.Email
-                })).Wait();
+                Task.Run(() => _emailPublisher
+                .PublishMessage(EmailMessage.GetStatusChangedEmail(lead))).Wait();
             }
         }
 
@@ -97,8 +93,6 @@ namespace LeadStatusUpdater.Services
                 ||CheckBalanceCondition(lead)
                 );
         }
-
-
         public bool CheckOperationsCondition(LeadOutputModel lead)
         {
             int transactionsCount = 0;
@@ -154,19 +148,13 @@ namespace LeadStatusUpdater.Services
                 if (leadBirthDate.Day == DateTime.Now.Day
                 && leadBirthDate.Month == DateTime.Now.Month)
                 {
-                    Task.Run(() => _emailPublisher.PublishEmail(new EmailModel
-                    {
-                        Subject = EmailMessage.HappyBirthdaySubject,
-                        Body = String.Format(EmailMessage.HappyrthdayBody, lead.LastName, lead.FirstName),
-                        MailAddresses = lead.Email
-                    })).Wait();
-
+                    Task.Run(() => _emailPublisher
+                    .PublishMessage(EmailMessage.GetBirthdayEmail(lead))).Wait();
                     return true;
                 }
                 return true;
             }
             return false;
         }
-
     }
 }

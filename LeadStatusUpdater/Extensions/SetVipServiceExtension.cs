@@ -21,8 +21,6 @@ namespace LeadStatusUpdater.Extensions
 
             return requests.GetTransactionsByPeriod(period, _adminToken);
         }
-
-
     }
 
 }

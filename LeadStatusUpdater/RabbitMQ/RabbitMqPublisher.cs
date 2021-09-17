@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 
 namespace LeadStatusUpdater.Common
 {
-    public class EmailPublisher
+    public class RabbitMqPublisher
     {
         IBusControl _busControl;
-        public EmailPublisher()
+        public RabbitMqPublisher()
         {
             _busControl = Bus.Factory.CreateUsingRabbitMq(configure: cfg =>
             {
@@ -23,13 +23,12 @@ namespace LeadStatusUpdater.Common
             });
         }
 
-        public void Sart() => _busControl.StartAsync();
-        public void Stop() => _busControl.StopAsync();
-        public async Task PublishEmail(EmailModel message)
+        public async Task Start() => await _busControl.StartAsync();
+        public async Task Stop() => await _busControl.StopAsync();
+        public async Task PublishMessage(EmailModel message)
         {
             //var source = new CancellationTokenSource(TimeSpan.FromSeconds(10));
 
-            //await _busControl.StartAsync();
             try
             {
                 
@@ -37,12 +36,14 @@ namespace LeadStatusUpdater.Common
                 {
                     Subject = message.Subject,
                     Body = message.Body,
-                    MailAddresses = message.MailAddresses
+                    MailAddresses = message.MailAddresses,
+                    DisplayName = message.DisplayName,
+                    IsBodyHtml = message.IsBodyHtml
                 });
             }
-            finally
+            catch(Exception ex)
             {
-                //await _busControl.StopAsync();
+                //
             }
         }
     }

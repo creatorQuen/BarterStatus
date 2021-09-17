@@ -42,7 +42,7 @@ namespace LeadStatusUpdater
                     services.AddTransient<ISetVipService, SetVipService>();
                     services.AddTransient<IRequestsSender, RequestsSender>();
                     services.AddTransient<IConverterService, ConverterService>();
-                    services.AddTransient<EmailPublisher>();
+                    services.AddTransient<RabbitMqPublisher>();
 
                     services.AddMassTransit(x =>
                     {

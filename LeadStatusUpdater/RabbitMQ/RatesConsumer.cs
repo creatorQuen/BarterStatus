@@ -1,7 +1,6 @@
 ﻿using Exchange;
 using LeadStatusUpdater.Services;
 using MassTransit;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace LeadStatusUpdater.Common
