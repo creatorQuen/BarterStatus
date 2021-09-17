@@ -22,11 +22,14 @@ namespace LeadStatusUpdater.Common
                 });
             });
         }
+
+        public void Sart() => _busControl.StartAsync();
+        public void Stop() => _busControl.StopAsync();
         public async Task PublishEmail(EmailModel message)
         {
             //var source = new CancellationTokenSource(TimeSpan.FromSeconds(10));
 
-            await _busControl.StartAsync();
+            //await _busControl.StartAsync();
             try
             {
                 
@@ -39,7 +42,7 @@ namespace LeadStatusUpdater.Common
             }
             finally
             {
-                await _busControl.StopAsync();
+                //await _busControl.StopAsync();
             }
         }
     }

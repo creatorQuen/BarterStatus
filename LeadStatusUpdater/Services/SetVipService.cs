@@ -53,6 +53,7 @@ namespace LeadStatusUpdater.Services
                         if (lead.Role != newRole)
                         {
                             leadsToChangeStatusList.Add(new LeadIdAndRoleInputModel { Id = lead.Id, Role = newRole });
+                            lead.Role = newRole;
                         }
                     });
 
@@ -66,16 +67,23 @@ namespace LeadStatusUpdater.Services
             while (leads != null && leadsCount > 0);
 
             Log.Information($"All leads were processed");
-            foreach (var lead in leadsToLogAndEmail)
+
+            foreach (var lead in leadsToLogAndEmail) //change to async
             {
                 string logMessage = lead.Role == Role.Vip ? $"{LogMessages.VipStatusGiven} " : $"{LogMessages.VipStatusTaken} ";
                 logMessage = string.Format(logMessage, lead.Id, lead.LastName, lead.FirstName, lead.Patronymic, lead.Email);
                 Log.Information(logMessage);
+            }
+
+            foreach (var lead in leadsToLogAndEmail) //change to async
+            {
+                string logMessage = lead.Role == Role.Vip ? $"{LogMessages.VipStatusGiven} " : $"{LogMessages.VipStatusTaken} ";
+                logMessage = string.Format(logMessage, lead.Id, lead.LastName, lead.FirstName, lead.Patronymic, lead.Email);
 
                 Task.Run(() => _emailPublisher.PublishEmail(new EmailModel
                 {
-                    Subject = EmailMessage.StatusChangedSubject, 
-                    Body = String.Format( EmailMessage.StatusChangedBody, lead.Role),
+                    Subject = EmailMessage.StatusChangedSubject,
+                    Body = String.Format(EmailMessage.StatusChangedBody, lead.Role),
                     MailAddresses = lead.Email
                 })).Wait();
             }
