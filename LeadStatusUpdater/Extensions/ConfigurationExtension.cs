@@ -31,10 +31,11 @@ namespace LeadStatusUpdater.Extensions
 
         public static void ConfigureLogger(this IConfiguration configuration)
         {
+            string customTemplate = "{Timestamp:dd/MM/yy HH:mm:ss.fff}\t[{Level:u3}]\t{Message}\n";
             Log.Logger = new LoggerConfiguration()
                     .ReadFrom.Configuration(configuration)
                     .Enrich.FromLogContext()
-                    .WriteTo.Console()
+                    .WriteTo.Console(outputTemplate: customTemplate)
                     .WriteTo.File(
                     configuration.GetPathToFile(),
                     rollingInterval: RollingInterval.Day)

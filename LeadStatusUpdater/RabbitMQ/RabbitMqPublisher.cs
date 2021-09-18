@@ -1,8 +1,8 @@
 ﻿using LeadStatusUpdater.Models;
+using LeadStatusUpdater.Settings;
 using MailExchange;
 using MassTransit;
-using System;
-using System.Threading;
+using Microsoft.Extensions.Options;
 using System.Threading.Tasks;
 
 namespace LeadStatusUpdater.Common
@@ -10,15 +10,15 @@ namespace LeadStatusUpdater.Common
     public class RabbitMqPublisher
     {
         IBusControl _busControl;
-        public RabbitMqPublisher()
+        
+        public RabbitMqPublisher(IOptions<AppSettings> settings)
         {
             _busControl = Bus.Factory.CreateUsingRabbitMq(configure: cfg =>
             {
-                // 5672 Основной порт RabbitMQ
-                cfg.Host("80.78.240.16", "/", h =>
+                cfg.Host(settings.Value.RabbitMqAddress, h =>
                 {
-                    h.Username("nafanya");
-                    h.Password("qwe!23");
+                    h.Username(settings.Value.RabbitMqUsername);
+                    h.Password(settings.Value.RabbitMqPassword);
                 });
             });
         }
@@ -28,23 +28,14 @@ namespace LeadStatusUpdater.Common
         public async Task PublishMessage(EmailModel message)
         {
             //var source = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-
-            try
+            await _busControl.Publish<IMailExchangeModel>(new
             {
-                
-                await _busControl.Publish<IMailExchangeModel>(new
-                {
-                    Subject = message.Subject,
-                    Body = message.Body,
-                    MailAddresses = message.MailAddresses,
-                    DisplayName = message.DisplayName,
-                    IsBodyHtml = message.IsBodyHtml
-                });
-            }
-            catch(Exception ex)
-            {
-                //
-            }
+                Subject = message.Subject,
+                Body = message.Body,
+                MailAddresses = message.MailAddresses,
+                DisplayName = message.DisplayName,
+                IsBodyHtml = message.IsBodyHtml
+            });
         }
     }
 }

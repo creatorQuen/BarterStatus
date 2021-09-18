@@ -31,7 +31,6 @@ namespace LeadStatusUpdater
             _service = service;
             _millisecondsDelay = settings.Value.MillisecondsDelay;
             _millisecondsWhenLaunch = settings.Value.MillisecondsWhenLaunch;
-
         }
 
         public override async Task StartAsync(CancellationToken cancellationToken)
@@ -49,11 +48,13 @@ namespace LeadStatusUpdater
         {
             while (!stoppingToken.IsCancellationRequested)
             {
+                await Task.Delay(2000);
                 Log.Information($"Cycle started at: {DateTime.Now}");
                 await _emailPublisher.Start();
                 try
                 {
-                    _service.Process(new object());
+                    Task.Run(() => _service.Process(new object())).Wait();
+                    //await _service.Process(new object());
                     Log.Information($"Cycle finished successfully at: {DateTime.Now}");
                 }
                 catch (Exception ex)
@@ -81,10 +82,10 @@ namespace LeadStatusUpdater
             return sleepTime;
         }
 
-        private void SetTimer()
-        {
-            var act = new TimerCallback(_service.Process);
-            _timer = new Timer(act, default, 0, _millisecondsWhenLaunch);
-        }
+        //private void SetTimer()
+        //{
+        //    var act = new TimerCallback(_service.Process);
+        //    _timer = new Timer(act, default, 0, _millisecondsWhenLaunch);
+        //}
     }
 }

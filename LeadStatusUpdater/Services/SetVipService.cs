@@ -28,7 +28,7 @@ namespace LeadStatusUpdater.Services
             _emailPublisher = emailPublisher;
         }
 
-        public void Process(object obj)
+        public async Task Process(object obj)
         {
             _adminToken = _requests.GetAdminToken();
 
@@ -57,6 +57,18 @@ namespace LeadStatusUpdater.Services
                         }
                     });
 
+                    //leads
+                    //    .AsParallel()
+                    //    //.WithDegreeOfParallelism(Convert.ToInt32(Math.Ceiling((Environment.ProcessorCount * 0.75) * 2.0)))
+                    //    .ForAll(lead => {
+                    //        var newRole = CheckOneLead(lead) ? Role.Vip : Role.Regular;
+                    //        if (lead.Role != newRole)
+                    //        {
+                    //            leadsToChangeStatusList.Add(new LeadIdAndRoleInputModel { Id = lead.Id, Role = newRole });
+                    //            lead.Role = newRole;
+                    //        }
+                    //    });
+
                     _requests.ChangeStatus(leadsToChangeStatusList, _adminToken); 
 
                     leadsToLogAndEmail.AddRange(leads.Where(l => leadsToChangeStatusList.Any(c => l.Id == c.Id)));
@@ -68,21 +80,9 @@ namespace LeadStatusUpdater.Services
 
             Log.Information($"All leads were processed");
 
-            foreach (var lead in leadsToLogAndEmail) 
-            {
-                string logMessage = lead.Role == Role.Vip ? $"{LogMessages.VipStatusGiven} " : $"{LogMessages.VipStatusTaken} ";
-                logMessage = string.Format(logMessage, lead.Id, lead.LastName, lead.FirstName, lead.Patronymic, lead.Email);
-                Log.Information(logMessage);
-            }
-
-            foreach (var lead in leadsToLogAndEmail)
-            {
-                string logMessage = lead.Role == Role.Vip ? $"{LogMessages.VipStatusGiven} " : $"{LogMessages.VipStatusTaken} ";
-                logMessage = string.Format(logMessage, lead.Id, lead.LastName, lead.FirstName, lead.Patronymic, lead.Email);
-
-                Task.Run(() => _emailPublisher
-                .PublishMessage(EmailMessage.GetStatusChangedEmail(lead))).Wait();
-            }
+            leadsToLogAndEmail.
+                AsParallel()
+                .ForAll(lead => LogAndPublishEmails(lead));
         }
 
         public bool CheckOneLead(LeadOutputModel lead)
@@ -155,6 +155,23 @@ namespace LeadStatusUpdater.Services
                 return true;
             }
             return false;
+        }
+
+        private void LogAndPublishEmails(LeadOutputModel lead)
+        {
+            LogStatusChanged(lead);
+
+            Task.Run(() => _emailPublisher
+                .PublishMessage(EmailMessage.GetStatusChangedEmail(lead))).Wait();
+
+            Log.Information($"{Task.CurrentId}");
+        }
+
+        private void LogStatusChanged(LeadOutputModel lead)
+        {
+            string logMessage = lead.Role == Role.Vip ? $"{LogMessages.VipStatusGiven} " : $"{LogMessages.VipStatusTaken} ";
+            logMessage = string.Format(logMessage, lead.Id, lead.LastName, lead.FirstName, lead.Patronymic, lead.Email);
+            Log.Information(logMessage);
         }
     }
 }
