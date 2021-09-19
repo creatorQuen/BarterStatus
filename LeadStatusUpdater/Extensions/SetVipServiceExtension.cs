@@ -9,8 +9,8 @@ namespace LeadStatusUpdater.Extensions
     {
         private const string _dateFormatWithMinutesAndSeconds = "dd.MM.yyyy HH:mm";
 
-        public static List<AccountBusinessModel> GetTransactionsByPeriod(this ISetVipService service, IRequestsSender requests, 
-            string _adminToken, int days, int accountId)
+        public static List<AccountBusinessModel> GetTransactionsByPeriod(this ISetVipService service, 
+            IRequestsSender requests, int days, int accountId)
         {
             var period = new TimeBasedAcquisitionInputModel
             {
@@ -19,7 +19,7 @@ namespace LeadStatusUpdater.Extensions
                 AccountId = accountId
             };
 
-            return requests.GetTransactionsByPeriod(period, _adminToken);
+            return requests.GetTransactionsByPeriod(period);
         }
     }
 
