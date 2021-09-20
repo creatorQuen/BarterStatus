@@ -35,6 +35,7 @@ namespace LeadStatusUpdater
 
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
+            await Task.Delay(CountTimeToSleep(), cancellationToken);
             Log.Information($"Worker started at: {DateTime.Now}");
             await base.StartAsync(cancellationToken);
         }
@@ -53,8 +54,7 @@ namespace LeadStatusUpdater
                 await _emailPublisher.Start();
                 try
                 {
-                    Task.Run(() => _service.Process(new object())).Wait();
-                    //await _service.Process(new object());
+                    await _service.Process(new object());
                     Log.Information($"Cycle finished successfully at: {DateTime.Now}");
                 }
                 catch (Exception ex)

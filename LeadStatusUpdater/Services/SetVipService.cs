@@ -1,4 +1,5 @@
-﻿using LeadStatusUpdater.Common;
+﻿using Dasync.Collections;
+using LeadStatusUpdater.Common;
 using LeadStatusUpdater.Constants;
 using LeadStatusUpdater.Enums;
 using LeadStatusUpdater.Extensions;
@@ -57,7 +58,7 @@ namespace LeadStatusUpdater.Services
                 {
                     Log.Information($"{batchCount} leads were retrieved from database");
 
-                    leads.ForEach(lead =>
+                    await foreach(var lead in leads)
                     {
                         var newRole = Task.Run(() => CheckOneLead(lead)).Result ? Role.Vip : Role.Regular;
                         if (lead.Role != newRole)
@@ -65,12 +66,34 @@ namespace LeadStatusUpdater.Services
                             leadsToChangeStatusList.Add(new LeadIdAndRoleInputModel { Id = lead.Id, Role = newRole });
                             lead.Role = newRole;
                         }
-                    });
+                    }
+
+                    //leads.ForEach(lead =>
+                    //{
+                    //    var newRole = Task.Run(() => CheckOneLead(lead)).Result ? Role.Vip : Role.Regular;
+                    //    if (lead.Role != newRole)
+                    //    {
+                    //        leadsToChangeStatusList.Add(new LeadIdAndRoleInputModel { Id = lead.Id, Role = newRole });
+                    //        lead.Role = newRole;
+                    //    }
+                    //});
+
+                    //await leads.ParallelForEachAsync(async lead =>
+                    //{
+                    //    var newRole = await CheckOneLead(lead) ? Role.Vip : Role.Regular;
+                    //    if (lead.Role != newRole)
+                    //    {
+                    //        leadsToChangeStatusList.Add(new LeadIdAndRoleInputModel { Id = lead.Id, Role = newRole });
+                    //        lead.Role = newRole;
+                    //    }
+                    //},
+                    //maxDegreeOfParallelism: 10);
 
                     //leads
                     //    .AsParallel()
                     //    //.WithDegreeOfParallelism(Convert.ToInt32(Math.Ceiling((Environment.ProcessorCount * 0.75) * 2.0)))
-                    //    .ForAll(lead => {
+                    //    .ForAll(lead =>
+                    //    {
                     //        var newRole = CheckOneLead(lead) ? Role.Vip : Role.Regular;
                     //        if (lead.Role != newRole)
                     //        {
