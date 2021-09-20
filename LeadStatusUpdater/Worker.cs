@@ -59,7 +59,7 @@ namespace LeadStatusUpdater
                 }
                 catch (Exception ex)
                 {
-                    Log.Fatal(ex.Message);
+                    Log.Fatal($"{ex.Message}\nStackTrace: {ex.StackTrace}");
                     await _emailPublisher.PublishMessage(EmailMessage.GetBadEmail(ex.Message));
                 }
                 finally

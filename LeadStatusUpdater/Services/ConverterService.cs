@@ -1,6 +1,5 @@
 ﻿using Exchange;
 using LeadStatusUpdater.Constants;
-using Serilog;
 using System;
 
 namespace LeadStatusUpdater.Services

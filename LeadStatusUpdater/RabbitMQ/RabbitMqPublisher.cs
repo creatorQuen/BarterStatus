@@ -27,7 +27,6 @@ namespace LeadStatusUpdater.Common
         public async Task Stop() => await _busControl.StopAsync();
         public async Task PublishMessage(EmailModel message)
         {
-            //var source = new CancellationTokenSource(TimeSpan.FromSeconds(10));
             await _busControl.Publish<IMailExchangeModel>(new
             {
                 Subject = message.Subject,
