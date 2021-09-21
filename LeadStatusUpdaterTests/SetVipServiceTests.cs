@@ -23,7 +23,11 @@ namespace LeadStatusUpdaterTests
         [Test]
         public void CheckOneLeadTests(LeadOutputModel lead)
         {
+            //When
 
+            //Given
+
+            //Then
             Assert.Pass();
         }
     }
