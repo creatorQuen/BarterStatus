@@ -50,6 +50,7 @@ namespace LeadStatusUpdater.Services
 
             do
             {
+                if (ConverterService.RatesModel == null) throw new Exception(LogMessages.RatesNotProvided);
                 leads = _requests.GetRegularAndVipLeads(lastLeadId);
                 batchCount = leads.Count;
                 totalLeadsCount += batchCount;

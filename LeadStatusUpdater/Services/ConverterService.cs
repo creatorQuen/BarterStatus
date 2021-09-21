@@ -12,10 +12,10 @@ namespace LeadStatusUpdater.Services
 
         public decimal ConvertAmount(string senderCurrency, string recipientCurrency, decimal amount)
         {
-            if(RatesModel == null)
-            {
-                throw new Exception(LogMessages.RatesNotProvided);
-            }
+            //if(RatesModel == null)
+            //{
+            //    throw new Exception(LogMessages.RatesNotProvided);
+            //}
             _baseCurrency = RatesModel.BaseCurrency;
 
             RatesModel.Rates.TryGetValue($"{_baseCurrency}{senderCurrency}", out var senderCurrencyValue);
