@@ -24,7 +24,7 @@ namespace LeadStatusUpdater
         public static IConfiguration CreateConfiguratuion()
         {
             return new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory())
-                              .AddJsonFile("appsettings.Development.json", optional: false, reloadOnChange: true)
+                              .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                               .Build();
         }
 

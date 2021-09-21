@@ -22,7 +22,7 @@ namespace LeadStatusUpdater.Common
             //        h.Password(settings.Value.RabbitMqPassword);
             //    });
             //}
-        );
+            );
         }
 
         public async Task Start() => await _busControl.StartAsync();

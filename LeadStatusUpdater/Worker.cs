@@ -54,7 +54,7 @@ namespace LeadStatusUpdater
                 await _emailPublisher.Start();
                 try
                 {
-                    await _service.Process(new object());
+                    _service.Process(new object());
                     Log.Information($"Cycle finished successfully at: {DateTime.Now}");
                 }
                 catch (Exception ex)
