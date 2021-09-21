@@ -2,7 +2,6 @@
 using LeadStatusUpdater.Common;
 using LeadStatusUpdater.Constants;
 using LeadStatusUpdater.Enums;
-using LeadStatusUpdater.Extensions;
 using LeadStatusUpdater.Models;
 using Serilog;
 using System;
@@ -23,6 +22,7 @@ namespace LeadStatusUpdater.Services
         private CancellationToken _cancelToken;
         private readonly DateTime _fromDateCheckBirthday;
         private readonly DateTime _toDateCheckBirthday;
+        private readonly DateTime _fromDateCheckBalance;
 
 
         public SetVipService(IRequestsSender sender,
@@ -32,9 +32,9 @@ namespace LeadStatusUpdater.Services
             _requests = sender;
             _converter = converter;
             _emailPublisher = emailPublisher;
-            var datet = new DateTime(2021, 3, 5);
-            _fromDateCheckBirthday = datet.AddDays(-Const.COUNT_DAY_AFTER_BDAY_FOR_VIP).Date;
-            _toDateCheckBirthday = datet.Date;
+            _toDateCheckBirthday = DateTime.Today.Date;
+            _fromDateCheckBirthday = _toDateCheckBirthday.AddDays(-Const.COUNT_DAY_AFTER_BDAY_FOR_VIP).Date;
+            _fromDateCheckBalance = DateTime.Now.AddMonths(-1);
         }
 
         public async Task Process(object obj)
@@ -58,56 +58,25 @@ namespace LeadStatusUpdater.Services
                 {
                     Log.Information($"{batchCount} leads were retrieved from database");
 
-                    await foreach(var lead in leads)
-                    {
-                        var newRole = Task.Run(() => CheckOneLead(lead)).Result ? Role.Vip : Role.Regular;
-                        if (lead.Role != newRole)
-                        {
-                            leadsToChangeStatusList.Add(new LeadIdAndRoleInputModel { Id = lead.Id, Role = newRole });
-                            lead.Role = newRole;
-                        }
-                    }
+                    leads
+                          .AsParallel()
+                          .ForAll(lead =>
+                          {
+                              var newRole = Task.Run(() => CheckOneLead(lead)).Result ? Role.Vip : Role.Regular;
+                              if (lead.Role != newRole)
+                              {
+                                  leadsToChangeStatusList.Add(new LeadIdAndRoleInputModel { Id = lead.Id, Role = newRole });
+                                  lead.Role = newRole;
+                              }
+                          });
 
-                    //leads.ForEach(lead =>
-                    //{
-                    //    var newRole = Task.Run(() => CheckOneLead(lead)).Result ? Role.Vip : Role.Regular;
-                    //    if (lead.Role != newRole)
-                    //    {
-                    //        leadsToChangeStatusList.Add(new LeadIdAndRoleInputModel { Id = lead.Id, Role = newRole });
-                    //        lead.Role = newRole;
-                    //    }
-                    //});
-
-                    //await leads.ParallelForEachAsync(async lead =>
-                    //{
-                    //    var newRole = await CheckOneLead(lead) ? Role.Vip : Role.Regular;
-                    //    if (lead.Role != newRole)
-                    //    {
-                    //        leadsToChangeStatusList.Add(new LeadIdAndRoleInputModel { Id = lead.Id, Role = newRole });
-                    //        lead.Role = newRole;
-                    //    }
-                    //},
-                    //maxDegreeOfParallelism: 10);
-
-                    //leads
-                    //    .AsParallel()
-                    //    //.WithDegreeOfParallelism(Convert.ToInt32(Math.Ceiling((Environment.ProcessorCount * 0.75) * 2.0)))
-                    //    .ForAll(lead =>
-                    //    {
-                    //        var newRole = CheckOneLead(lead) ? Role.Vip : Role.Regular;
-                    //        if (lead.Role != newRole)
-                    //        {
-                    //            leadsToChangeStatusList.Add(new LeadIdAndRoleInputModel { Id = lead.Id, Role = newRole });
-                    //            lead.Role = newRole;
-                    //        }
-                    //    });
-
+                    Log.Information("batch ready to update");
                     _requests.ChangeStatus(leadsToChangeStatusList); 
 
                     leadsToLogAndEmail.AddRange(leads.Where(l => leadsToChangeStatusList.Any(c => l.Id == c.Id)));
 
                     lastLeadId = leads.Last().Id;
-                    Log.Information("batch done");
+                    
                 }
             }
             while (leads != null && batchCount > 0);
@@ -126,8 +95,13 @@ namespace LeadStatusUpdater.Services
             if (CheckBirthdayCondition(lead) == true) return true;
 
             var tasks = new List<Task<bool>>();
-            tasks.Add(CheckOperationsCondition(lead));
-            tasks.Add(CheckBalanceCondition(lead));
+            var transactions = _requests
+                                    .GetTransactionsByPeriod((from acc in lead.Accounts select acc.Id)
+                                    .ToList());
+            if (transactions == null || transactions.Count == 0) return false;
+
+            tasks.Add(CheckOperationsCondition(transactions));
+            tasks.Add(CheckBalanceCondition(transactions));
 
             while (tasks.Any())
             {
@@ -141,54 +115,30 @@ namespace LeadStatusUpdater.Services
             return false;
         }
 
-        public async Task<bool> CheckOperationsCondition(LeadOutputModel lead)
+        public async Task<bool> CheckOperationsCondition(List<TransactionOutputModel> transactions)
         {
-            int transactionsCount = 0;
-            foreach (var account in lead.Accounts)
+            if(transactions.
+                    Where(t => t.TransactionType == TransactionType.Deposit
+                    || t.TransactionType == TransactionType.Transfer).Count() > Const.COUNT_TRANSACTIONS_IN_PERIOD_FOR_VIP)
             {
-                if (_cancelToken.IsCancellationRequested) return false;
-
-                var transactions = this.GetTransactionsByPeriod(_requests, Const.PERIOD_FOR_CHECK_TRANSACTIONS_FOR_VIP, account.Id)
-                    .FirstOrDefault();
-
-                if (transactions.Transactions != null && transactions.Transactions.Count > 0)
-                {
-                    transactionsCount += transactions.Transactions.
-                    Where(t => t.TransactionType == TransactionType.Deposit).Count();
-                }
-                if (transactions.Transfers != null && transactions.Transfers.Count > 0)
-                {
-                    transactionsCount += transactions.Transfers.Count();
-                }
-
-                if (transactionsCount > Const.COUNT_TRANSACTIONS_IN_PERIOD_FOR_VIP)
-                {
-                    _cancelTokenSource.Cancel();
-                    return true;
-                }
+                _cancelTokenSource.Cancel();
+                return true;
             }
             return false;
         }
 
-        public async Task<bool> CheckBalanceCondition(LeadOutputModel lead)
+        public async Task<bool> CheckBalanceCondition(List<TransactionOutputModel> transactions)
         {
             decimal sum = 0;
 
-            foreach (var account in lead.Accounts)
+            var transactionsToCheck = transactions.Where(t => (t.TransactionType == TransactionType.Deposit
+                    || t.TransactionType == TransactionType.Withdraw) && (t.Date >= _fromDateCheckBalance));
+
+            foreach (var transaction in transactionsToCheck)
             {
                 if (_cancelToken.IsCancellationRequested) return false;
-                var transactions = this.GetTransactionsByPeriod(_requests, Const.PERIOD_FOR_CHECK_SUM_FOR_VIP, account.Id)
-                    .FirstOrDefault();
-                if (_cancelToken.IsCancellationRequested) return false;
-                if (transactions.Transactions != null && transactions.Transactions.Count > 0)
-                {
-                    foreach (var transaction in transactions.Transactions)
-                    {
-                        if (_cancelToken.IsCancellationRequested) return false;
-                        sum += transaction.Currency == Currency.RUB ?
-                            transaction.Amount : _converter.ConvertAmount(transaction.Currency.ToString(), Currency.RUB.ToString(), transaction.Amount);
-                    }
-                }
+                sum += transaction.Currency == Currency.RUB.ToString() ?
+                    transaction.Amount : _converter.ConvertAmount(transaction.Currency, Currency.RUB.ToString(), transaction.Amount);
             }
             _cancelTokenSource.Cancel();
             return sum > Const.SUM_DIFFERENCE_DEPOSIT_AND_WITHRAW_FOR_VIP;

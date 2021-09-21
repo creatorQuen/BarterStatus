@@ -27,9 +27,9 @@ namespace LeadStatusUpdater.Requests
             _requestHelper = new RequestHelper();
         }
 
-        public List<LeadOutputModel> GetRegularAndVipLeads(int lastLeadIs)
+        public List<LeadOutputModel> GetRegularAndVipLeads(int lastLeadId)
         {
-            var endpoint = $"{Endpoints.GetLeadsByBatchesEndpoint}{lastLeadIs}";
+            var endpoint = $"{Endpoints.GetLeadsByBatchesEndpoint}{lastLeadId}";
             IRestResponse<List<LeadOutputModel>> response;
 
             for (int i = 1; i <= _retryCount; i++)
@@ -55,15 +55,15 @@ namespace LeadStatusUpdater.Requests
             throw new Exception($"{LogMessages.CrmNotResponding}");
         }
 
-        public List<AccountBusinessModel> GetTransactionsByPeriod(TimeBasedAcquisitionInputModel model)
+        public List<TransactionOutputModel> GetTransactionsByPeriod(List<int> accountIds)
         {
-            var endpoint = Endpoints.GetTransactionByPeriodEndpoint;
-            IRestResponse<List<AccountBusinessModel>> response;
+            var endpoint = Endpoints.GetTransactionsByTwoMonthAndAccountIds;
+            IRestResponse<List<TransactionOutputModel>> response;
 
             for (int i = 1; i <= _retryCount; i++)
             {
-                var request = _requestHelper.CreatePostRequest(endpoint, model, SetVipService.AdminToken);
-                response = _client.Execute<List<AccountBusinessModel>>(request);
+                var request = _requestHelper.CreatePostRequest(endpoint, accountIds, SetVipService.AdminToken);
+                response = _client.Execute<List<TransactionOutputModel>>(request);
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
                     return response.Data;
@@ -82,7 +82,7 @@ namespace LeadStatusUpdater.Requests
             throw new Exception($"{LogMessages.CrmNotResponding}");
         }
 
-        public int ChangeStatus(List<LeadIdAndRoleInputModel> model) //change
+        public int ChangeStatus(List<LeadIdAndRoleInputModel> model)
         {
             var endpoint = Endpoints.ChangeRoleEndpoint;
             IRestResponse<int> response;

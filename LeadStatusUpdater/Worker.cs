@@ -35,7 +35,7 @@ namespace LeadStatusUpdater
 
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
-            await Task.Delay(CountTimeToSleep(), cancellationToken);
+            //await Task.Delay(CountTimeToSleep(), cancellationToken);
             Log.Information($"Worker started at: {DateTime.Now}");
             await base.StartAsync(cancellationToken);
         }
