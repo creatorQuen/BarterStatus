@@ -1,14 +1,15 @@
 ﻿using LeadStatusUpdater.Models;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace LeadStatusUpdater.Services
 {
     public interface ISetVipService
     {
-        bool CheckBalanceCondition(LeadOutputModel lead);
+        Task<bool> CheckBalanceCondition(List<TransactionOutputModel> transactions);
         bool CheckBirthdayCondition(LeadOutputModel lead);
-        bool CheckOneLead(LeadOutputModel lead);
-        bool CheckOperationsCondition(LeadOutputModel lead);
-        void Process(object obj);
+        Task<bool> CheckOneLead(LeadOutputModel lead);
+        Task<bool> CheckOperationsCondition(List<TransactionOutputModel> transactions);
+        Task Process(object obj);
     }
 }

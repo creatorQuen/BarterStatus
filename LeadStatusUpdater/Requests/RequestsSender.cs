@@ -1,5 +1,6 @@
 ﻿using LeadStatusUpdater.Constants;
 using LeadStatusUpdater.Models;
+using LeadStatusUpdater.Services;
 using LeadStatusUpdater.Settings;
 using Microsoft.Extensions.Options;
 using RestSharp;
@@ -26,14 +27,14 @@ namespace LeadStatusUpdater.Requests
             _requestHelper = new RequestHelper();
         }
 
-        public List<LeadOutputModel> GetRegularAndVipLeads(string adminToken, int lastLeadIs)
+        public List<LeadOutputModel> GetRegularAndVipLeads(int lastLeadId)
         {
-            var endpoint = $"{Endpoints.GetLeadsByBatchesEndpoint}{lastLeadIs}";
+            var endpoint = $"{Endpoints.GetLeadsByBatchesEndpoint}{lastLeadId}";
             IRestResponse<List<LeadOutputModel>> response;
 
             for (int i = 1; i <= _retryCount; i++)
             {
-                var request = _requestHelper.CreateGetRequest(endpoint, adminToken);
+                var request = _requestHelper.CreateGetRequest(endpoint, SetVipService.AdminToken);
                 response = _client.Execute<List<LeadOutputModel>>(request);
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
@@ -43,7 +44,7 @@ namespace LeadStatusUpdater.Requests
                 if (response.StatusCode == HttpStatusCode.Unauthorized)
                 {
                     Log.Warning($"{LogMessages.RequestResult}", endpoint, response.StatusCode);
-                    adminToken = GetAdminToken();
+                    SetVipService.AdminToken = GetAdminToken();
                     i--;
                     continue;
                 }
@@ -54,15 +55,15 @@ namespace LeadStatusUpdater.Requests
             throw new Exception($"{LogMessages.CrmNotResponding}");
         }
 
-        public List<AccountBusinessModel> GetTransactionsByPeriod(TimeBasedAcquisitionInputModel model, string adminToken)
+        public List<TransactionOutputModel> GetTransactionsByPeriod(List<int> accountIds)
         {
-            var endpoint = Endpoints.GetTransactionByPeriodEndpoint;
-            IRestResponse<List<AccountBusinessModel>> response;
+            var endpoint = Endpoints.GetTransactionsByTwoMonthAndAccountIds;
+            IRestResponse<List<TransactionOutputModel>> response;
 
             for (int i = 1; i <= _retryCount; i++)
             {
-                var request = _requestHelper.CreatePostRequest(endpoint, model, adminToken);
-                response = _client.Execute<List<AccountBusinessModel>>(request);
+                var request = _requestHelper.CreatePostRequest(endpoint, accountIds, SetVipService.AdminToken);
+                response = _client.Execute<List<TransactionOutputModel>>(request);
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
                     return response.Data;
@@ -70,7 +71,7 @@ namespace LeadStatusUpdater.Requests
                 if (response.StatusCode == HttpStatusCode.Unauthorized)
                 {
                     Log.Warning($"{LogMessages.RequestResult}", endpoint, response.StatusCode);
-                    adminToken = GetAdminToken();
+                    SetVipService.AdminToken = GetAdminToken();
                     i--;
                     continue;
                 }
@@ -81,14 +82,14 @@ namespace LeadStatusUpdater.Requests
             throw new Exception($"{LogMessages.CrmNotResponding}");
         }
 
-        public int ChangeStatus(List<LeadIdAndRoleInputModel> model, string adminToken) //change
+        public int ChangeStatus(List<LeadIdAndRoleInputModel> model)
         {
             var endpoint = Endpoints.ChangeRoleEndpoint;
             IRestResponse<int> response;
 
             for (int i = 1; i <= _retryCount; i++)
             {
-                var request = _requestHelper.CreatePutRequest(endpoint, model, adminToken);
+                var request = _requestHelper.CreatePutRequest(endpoint, model, SetVipService.AdminToken);
                 response = _client.Execute<int>(request);
                 if (response.StatusCode == HttpStatusCode.OK)
                 {
@@ -97,7 +98,7 @@ namespace LeadStatusUpdater.Requests
                 if (response.StatusCode == HttpStatusCode.Unauthorized)
                 {
                     Log.Warning($"{LogMessages.RequestResult}", endpoint, response.StatusCode);
-                    adminToken = GetAdminToken();
+                    SetVipService.AdminToken = GetAdminToken();
                     i--;
                     continue;
                 }

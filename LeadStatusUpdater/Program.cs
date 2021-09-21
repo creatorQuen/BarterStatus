@@ -7,7 +7,6 @@ using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System;
 using System.IO;
 
 namespace LeadStatusUpdater
@@ -50,10 +49,11 @@ namespace LeadStatusUpdater
                         x.SetKebabCaseEndpointNameFormatter();
                         x.UsingRabbitMq((context, cfg) =>
                         {
-                            //cfg.Host("80.78.240.16", h =>
+                            //var setting = new AppSettings();
+                            //cfg.Host(Environment.GetEnvironmentVariable(setting.RabbitMqAddress), h =>
                             //{
-                            //    h.Username("nafanya");
-                            //    h.Password("qwe!23");
+                            //    h.Username(Environment.GetEnvironmentVariable(setting.RabbitMqUsername));
+                            //    h.Password(Environment.GetEnvironmentVariable(setting.RabbitMqPassword));
                             //});
                             cfg.ReceiveEndpoint("rates-queue-test", e =>
                             {
