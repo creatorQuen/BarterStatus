@@ -96,9 +96,9 @@ namespace LeadStatusUpdater.Services
             if (CheckBirthdayCondition(lead) == true) return true;
 
             var tasks = new List<Task<bool>>();
+            var accountIds = (from acc in lead.Accounts select acc.Id).ToList();
             var transactions = _requests
-                                    .GetTransactionsByPeriod((from acc in lead.Accounts select acc.Id)
-                                    .ToList());
+                                    .GetTransactionsByPeriod(accountIds);
             if (transactions == null || transactions.Count == 0) return false;
 
             tasks.Add(CheckOperationsCondition(transactions));

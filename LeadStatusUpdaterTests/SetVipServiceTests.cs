@@ -29,7 +29,7 @@ namespace LeadStatusUpdaterTests
         }
 
         [TestCaseSource(typeof(SetVipServiceData), nameof(SetVipServiceData.GetDataForCheckLead))]
-        public async Task CheckOneLeadTests(LeadOutputModel lead, List<int> accountIds, 
+        public async Task CheckOneLeadTests_LeadOutputModel_BooleanReturned(LeadOutputModel lead, List<int> accountIds, 
             List<TransactionOutputModel> transactions, bool expected)
         {
             //When
@@ -41,5 +41,32 @@ namespace LeadStatusUpdaterTests
             //Then
             Assert.AreEqual(expected, actual);
         }
+
+        [TestCase()]
+        public void ProcessTests_Object_NoContentReturned()
+        {
+            //When
+            var leadsOfFirstLoop = SetVipServiceData.GetLeadsOutputModel();
+            var leadsToChangeStatusList = SetVipServiceData.GetLeadsToChangeStatusList();
+
+            _requestsMock
+                .SetupSequence(x => x.GetRegularAndVipLeads(It.IsAny<int>()))
+                .Returns(leadsOfFirstLoop)
+                .Returns(new List<LeadOutputModel>());
+            _requestsMock
+                .SetupSequence(x => x.GetTransactionsByPeriod(It.IsAny<List<int>>()))
+                .Returns(SetVipServiceData.GetTransactionsByLeadId(4))
+                .Returns(SetVipServiceData.GetTransactionsByLeadId(5))
+                .Returns(SetVipServiceData.GetTransactionsByLeadId(6));
+            _requestsMock
+                .Setup(x => x.ChangeStatus(leadsToChangeStatusList));
+
+            //Given
+            _sut.Process(new object());
+
+            //Then
+        }
+
+
     }
 }
