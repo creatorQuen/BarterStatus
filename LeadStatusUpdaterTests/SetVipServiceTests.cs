@@ -41,41 +41,5 @@ namespace LeadStatusUpdaterTests
             //Then
             Assert.AreEqual(expected, actual);
         }
-
-        [TestCaseSource(typeof(SetVipServiceData), nameof(SetVipServiceData.GetDataForBalanceCheck))]
-        public void CheckBirthdayConditionTests(LeadOutputModel lead, bool expected)
-        {
-            //When
-
-            //Given
-            var actual = _sut.CheckBirthdayCondition(lead);
-
-            //Then
-            Assert.AreEqual(expected, actual);
-        }
-
-        [TestCaseSource(typeof(SetVipServiceData), nameof(SetVipServiceData.GetDataForOperationCheck))]
-        public async Task CheckOperationsConditionTests(List<TransactionOutputModel> transactions, bool expected)
-        {
-            //When
-
-            //Given
-            var actual = await _sut.CheckOperationsCondition(transactions);
-
-            //Then
-            Assert.AreEqual(expected, actual);
-        }
-
-        [TestCaseSource(typeof(SetVipServiceData), nameof(SetVipServiceData.GetDataForBalanceCheck))]
-        public async Task CheckBalanceConditionTests(List<TransactionOutputModel> transactions, bool expected)
-        {
-            //When
-
-            //Given
-            var actual = await _sut.CheckBalanceCondition(transactions);
-
-            //Then
-            Assert.AreEqual(expected, actual);
-        }
     }
 }

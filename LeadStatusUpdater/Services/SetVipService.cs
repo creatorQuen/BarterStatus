@@ -116,7 +116,7 @@ namespace LeadStatusUpdater.Services
             return false;
         }
 
-        public async Task<bool> CheckOperationsCondition(List<TransactionOutputModel> transactions)
+        private async Task<bool> CheckOperationsCondition(List<TransactionOutputModel> transactions)
         {
             if(transactions.
                     Where(t => t.TransactionType == TransactionType.Deposit
@@ -128,7 +128,7 @@ namespace LeadStatusUpdater.Services
             return false;
         }
 
-        public async Task<bool> CheckBalanceCondition(List<TransactionOutputModel> transactions)
+        private async Task<bool> CheckBalanceCondition(List<TransactionOutputModel> transactions)
         {
             decimal sum = 0;
 
@@ -145,7 +145,7 @@ namespace LeadStatusUpdater.Services
             return sum > Const.SUM_DIFFERENCE_DEPOSIT_AND_WITHRAW_FOR_VIP;
         }
 
-        public bool CheckBirthdayCondition(LeadOutputModel lead)
+        private bool CheckBirthdayCondition(LeadOutputModel lead)
         {
             var leadBirthDate = Convert.ToDateTime(lead.BirthDate);
 

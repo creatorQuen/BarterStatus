@@ -1,10 +1,6 @@
 using NUnit.Framework;
-using LeadStatusUpdater.Enums;
-using System.Collections.Generic;
 using LeadStatusUpdater.Services;
 using LeadStatusUpdaterTests.DataHelpers;
-using System;
-using LeadStatusUpdater.Constants;
 
 namespace LeadStatusUpdaterTests
 {
@@ -29,20 +25,6 @@ namespace LeadStatusUpdaterTests
 
             //Then
             Assert.AreEqual(expected, actual);
-        }
-
-        [TestCaseSource(typeof(ConverterServiceData), nameof(ConverterServiceData.GetDataForConvertAmountWhenRatesModelIsNull))]
-        public void ConvertAmount_RatesModelIsNull_Exception(string senderCurrency, string recipientCurrency, decimal amount)
-        {
-            //Given
-            var expectedMessage = new Exception(LogMessages.RatesNotProvided);
-
-            //When
-            var actual = Assert.Throws<Exception>(() =>
-                            _sut.ConvertAmount(senderCurrency, recipientCurrency, amount));
-
-            //Then
-            Assert.AreEqual(expectedMessage, actual.Message);
         }
     }
 }

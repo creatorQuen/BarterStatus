@@ -31,10 +31,5 @@ namespace LeadStatusUpdaterTests.DataHelpers
                 }
             };
         }
-
-        public static IEnumerable GetDataForConvertAmountWhenRatesModelIsNull()
-        {
-            yield return new object[] { Currency.USD.ToString(), Currency.RUB.ToString(), 1234m };
-        }
     }
 }
