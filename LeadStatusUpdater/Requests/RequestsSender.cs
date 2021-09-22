@@ -30,83 +30,22 @@ namespace LeadStatusUpdater.Requests
         public List<LeadOutputModel> GetRegularAndVipLeads(int lastLeadId)
         {
             var endpoint = $"{Endpoints.GetLeadsByBatchesEndpoint}{lastLeadId}";
-            IRestResponse<List<LeadOutputModel>> response;
-
-            for (int i = 1; i <= _retryCount; i++)
-            {
-                var request = _requestHelper.CreateGetRequest(endpoint, SetVipService.AdminToken);
-                response = _client.Execute<List<LeadOutputModel>>(request);
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    Log.Information($"{LogMessages.RequestResult}", endpoint, response.StatusCode);
-                    return response.Data;
-                }
-                if (response.StatusCode == HttpStatusCode.Unauthorized)
-                {
-                    Log.Warning($"{LogMessages.RequestResult}", endpoint, response.StatusCode);
-                    SetVipService.AdminToken = GetAdminToken();
-                    i--;
-                    continue;
-                }
-                var error = response.ErrorMessage == default ? response.Content : response.ErrorMessage;
-                Log.Error($"{LogMessages.RequestFailed}", i, endpoint, error);
-                if (i != _retryCount) Thread.Sleep(_retryTimeout);
-            }
-            throw new Exception($"{LogMessages.CrmNotResponding}");
+            var request = _requestHelper.CreateGetRequest(endpoint, SetVipService.AdminToken);
+            return SendRequest<List<LeadOutputModel>>(endpoint, request);
         }
 
         public List<TransactionOutputModel> GetTransactionsByPeriod(List<int> accountIds)
         {
             var endpoint = Endpoints.GetTransactionsByTwoMonthAndAccountIds;
-            IRestResponse<List<TransactionOutputModel>> response;
-
-            for (int i = 1; i <= _retryCount; i++)
-            {
-                var request = _requestHelper.CreatePostRequest(endpoint, accountIds, SetVipService.AdminToken);
-                response = _client.Execute<List<TransactionOutputModel>>(request);
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    return response.Data;
-                }
-                if (response.StatusCode == HttpStatusCode.Unauthorized)
-                {
-                    Log.Warning($"{LogMessages.RequestResult}", endpoint, response.StatusCode);
-                    SetVipService.AdminToken = GetAdminToken();
-                    i--;
-                    continue;
-                }
-                var error = response.ErrorMessage == default ? response.Content : response.ErrorMessage;
-                Log.Error($"{LogMessages.RequestFailed}", i, endpoint, error);
-                if (i != _retryCount) Thread.Sleep(_retryTimeout);
-            }
-            throw new Exception($"{LogMessages.CrmNotResponding}");
+            var request = _requestHelper.CreatePostRequest(endpoint, accountIds, SetVipService.AdminToken);
+            return SendRequest<List<TransactionOutputModel>>(endpoint, request);
         }
 
         public int ChangeStatus(List<LeadIdAndRoleInputModel> model)
         {
             var endpoint = Endpoints.ChangeRoleEndpoint;
-            IRestResponse<int> response;
-
-            for (int i = 1; i <= _retryCount; i++)
-            {
-                var request = _requestHelper.CreatePutRequest(endpoint, model, SetVipService.AdminToken);
-                response = _client.Execute<int>(request);
-                if (response.StatusCode == HttpStatusCode.OK)
-                {
-                    return response.Data;
-                }
-                if (response.StatusCode == HttpStatusCode.Unauthorized)
-                {
-                    Log.Warning($"{LogMessages.RequestResult}", endpoint, response.StatusCode);
-                    SetVipService.AdminToken = GetAdminToken();
-                    i--;
-                    continue;
-                }
-                var error = response.ErrorMessage == default ? response.Content : response.ErrorMessage;
-                Log.Error($"{LogMessages.RequestFailed}", i, endpoint, error);
-                if (i != _retryCount) Thread.Sleep(_retryTimeout);
-            }
-            throw new Exception($"{LogMessages.CrmNotResponding}");
+            var request = _requestHelper.CreatePutRequest(endpoint, model, SetVipService.AdminToken);
+            return SendRequest<int>(endpoint, request);
         }
 
         public string GetAdminToken()
@@ -123,6 +62,30 @@ namespace LeadStatusUpdater.Requests
                 {
                     Log.Information($"{LogMessages.NewTokenGenerated}");
                     return response.Data;
+                }
+                var error = response.ErrorMessage == default ? response.Content : response.ErrorMessage;
+                Log.Error($"{LogMessages.RequestFailed}", i, endpoint, error);
+                if (i != _retryCount) Thread.Sleep(_retryTimeout);
+            }
+            throw new Exception($"{LogMessages.CrmNotResponding}");
+        }
+
+        private T SendRequest<T>(string endpoint, IRestRequest request)
+        {
+            IRestResponse<T> response;
+            for (int i = 1; i <= _retryCount; i++)
+            {
+                response = _client.Execute<T>(request);
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    return response.Data;
+                }
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    Log.Warning($"{LogMessages.RequestResult}", endpoint, response.StatusCode);
+                    SetVipService.AdminToken = GetAdminToken();
+                    i--;
+                    continue;
                 }
                 var error = response.ErrorMessage == default ? response.Content : response.ErrorMessage;
                 Log.Error($"{LogMessages.RequestFailed}", i, endpoint, error);

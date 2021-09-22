@@ -7,12 +7,18 @@ using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System;
 using System.IO;
 
 namespace LeadStatusUpdater
 {
     public class Program
     {
+        private const string _queue = "rates-queue-test";
+        private const string _sectionKey = "AppSettings";
+        private static string _rabbitHost = "RabbitMqAddress";
+        private static string _rabbitPassword = "RabbitMqPassword";
+        private static string _rabbitUsername = "RabbitMqUsername";
         public static void Main(string[] args)
         {
             var configuration = CreateConfiguratuion();
@@ -24,7 +30,7 @@ namespace LeadStatusUpdater
         public static IConfiguration CreateConfiguratuion()
         {
             return new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory())
-                              .AddJsonFile("appsettings.Development.json", optional: false, reloadOnChange: true)
+                              .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                               .Build();
         }
 
@@ -49,13 +55,12 @@ namespace LeadStatusUpdater
                         x.SetKebabCaseEndpointNameFormatter();
                         x.UsingRabbitMq((context, cfg) =>
                         {
-                            //var setting = new AppSettings();
-                            //cfg.Host(Environment.GetEnvironmentVariable(setting.RabbitMqAddress), h =>
-                            //{
-                            //    h.Username(Environment.GetEnvironmentVariable(setting.RabbitMqUsername));
-                            //    h.Password(Environment.GetEnvironmentVariable(setting.RabbitMqPassword));
-                            //});
-                            cfg.ReceiveEndpoint("rates-queue-test", e =>
+                            cfg.Host(configuration.GetValue<string>($"{_sectionKey}:{_rabbitHost}"), h =>
+                            {
+                                h.Username(configuration.GetValue<string>($"{_sectionKey}:{_rabbitUsername}"));
+                                h.Password(configuration.GetValue<string>($"{_sectionKey}:{_rabbitPassword}"));
+                            });
+                            cfg.ReceiveEndpoint(_queue, e =>
                             {
                                 e.ConfigureConsumer<RatesConsumer>(context);
                             });

@@ -71,13 +71,12 @@ namespace LeadStatusUpdater.Services
                               }
                           });
 
-                    Log.Information("batch ready to update");
                     _requests.ChangeStatus(leadsToChangeStatusList); 
+                    Log.Information($"{leadsToChangeStatusList.Count} leads updated");
 
                     leadsToLogAndEmail.AddRange(leads.Where(l => leadsToChangeStatusList.Any(c => l.Id == c.Id)));
 
                     lastLeadId = leads.Last().Id;
-                    
                 }
             }
             while (leads != null && batchCount > 0);
@@ -93,7 +92,7 @@ namespace LeadStatusUpdater.Services
         {
             _cancelTokenSource = new CancellationTokenSource();
             _cancelToken = _cancelTokenSource.Token;
-            if (CheckBirthdayCondition(lead) == true) return true;
+            if (CheckBirthdayCondition(lead).Result == true) return true;
 
             var tasks = new List<Task<bool>>();
             var accountIds = (from acc in lead.Accounts select acc.Id).ToList();
@@ -118,7 +117,7 @@ namespace LeadStatusUpdater.Services
 
         private async Task<bool> CheckOperationsCondition(List<TransactionOutputModel> transactions)
         {
-            if(transactions.
+            if (transactions.
                     Where(t => t.TransactionType == TransactionType.Deposit
                     || t.TransactionType == TransactionType.Transfer).Count() > Const.COUNT_TRANSACTIONS_IN_PERIOD_FOR_VIP)
             {
@@ -133,7 +132,7 @@ namespace LeadStatusUpdater.Services
             decimal sum = 0;
 
             var transactionsToCheck = transactions.Where(t => (t.TransactionType == TransactionType.Deposit
-                    || t.TransactionType == TransactionType.Withdraw) && (t.Date >= _fromDateCheckBalance));
+                    || t.TransactionType == TransactionType.Withdraw) && (t.Date >= _fromDateCheckBalance)).ToList();
 
             foreach (var transaction in transactionsToCheck)
             {
@@ -141,11 +140,16 @@ namespace LeadStatusUpdater.Services
                 sum += transaction.Currency == Currency.RUB.ToString() ?
                     transaction.Amount : _converter.ConvertAmount(transaction.Currency, Currency.RUB.ToString(), transaction.Amount);
             }
-            _cancelTokenSource.Cancel();
-            return sum > Const.SUM_DIFFERENCE_DEPOSIT_AND_WITHRAW_FOR_VIP;
+
+            if(sum > Const.SUM_DIFFERENCE_DEPOSIT_AND_WITHRAW_FOR_VIP)
+            {
+                _cancelTokenSource.Cancel();
+                return true;
+            }
+            return false;
         }
 
-        private bool CheckBirthdayCondition(LeadOutputModel lead)
+        public async Task<bool> CheckBirthdayCondition(LeadOutputModel lead)
         {
             var leadBirthDate = Convert.ToDateTime(lead.BirthDate);
 
@@ -158,8 +162,8 @@ namespace LeadStatusUpdater.Services
                 if (leadBirthDate.Day == DateTime.Now.Day
                 && leadBirthDate.Month == DateTime.Now.Month)
                 {
-                    Task.Run(() => _emailPublisher
-                    .PublishMessage(EmailMessage.GetBirthdayEmail(lead))).Wait();
+                    await _emailPublisher
+                    .PublishMessage(EmailMessage.GetBirthdayEmail(lead));
                     return true;
                 }
                 return true;
