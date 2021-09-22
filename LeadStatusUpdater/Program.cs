@@ -16,7 +16,7 @@ namespace LeadStatusUpdater
     {
         private const string _queue = "rates-queue-test";
         private const string _sectionKey = "AppSettings";
-        private static string _rabbitHost = "80.78.240.16";
+        private static string _rabbitHost = "RabbitMqAddress";
         private static string _rabbitPassword = "RabbitMqPassword";
         private static string _rabbitUsername = "RabbitMqUsername";
         public static void Main(string[] args)
@@ -55,11 +55,11 @@ namespace LeadStatusUpdater
                         x.SetKebabCaseEndpointNameFormatter();
                         x.UsingRabbitMq((context, cfg) =>
                         {
-                            //cfg.Host(_rabbitHost, h =>
-                            //{
-                            //    h.Username(Environment.GetEnvironmentVariable(configuration.GetValue<string>($"{_sectionKey}:{_rabbitUsername}")));
-                            //    h.Password(Environment.GetEnvironmentVariable(configuration.GetValue<string>($"{_sectionKey}:{_rabbitPassword}")));
-                            //});
+                            cfg.Host(configuration.GetValue<string>($"{_sectionKey}:{_rabbitHost}"), h =>
+                            {
+                                h.Username(configuration.GetValue<string>($"{_sectionKey}:{_rabbitUsername}"));
+                                h.Password(configuration.GetValue<string>($"{_sectionKey}:{_rabbitPassword}"));
+                            });
                             cfg.ReceiveEndpoint(_queue, e =>
                             {
                                 e.ConfigureConsumer<RatesConsumer>(context);

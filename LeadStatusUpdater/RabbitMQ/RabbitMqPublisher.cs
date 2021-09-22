@@ -16,11 +16,11 @@ namespace LeadStatusUpdater.Common
             _busControl = Bus.Factory.CreateUsingRabbitMq(
                 configure: cfg =>
             {
-                //cfg.Host(settings.Value.RabbitMqAddress, h =>
-                //{
-                //    h.Username(settings.Value.RabbitMqUsername);
-                //    h.Password(settings.Value.RabbitMqPassword);
-                //});
+                cfg.Host(settings.Value.RabbitMqAddress, h =>
+                {
+                    h.Username(settings.Value.RabbitMqUsername);
+                    h.Password(settings.Value.RabbitMqPassword);
+                });
             }
             );
         }

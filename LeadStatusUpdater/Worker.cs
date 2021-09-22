@@ -35,7 +35,8 @@ namespace LeadStatusUpdater
 
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
-            //await Task.Delay(CountTimeToSleep(), cancellationToken);
+            Log.Information($"Worker will start in: {GetTimeFromMs(CountTimeToSleep())}");
+            await Task.Delay(CountTimeToSleep(), cancellationToken);
             Log.Information($"Worker started at: {DateTime.Now}");
             await base.StartAsync(cancellationToken);
         }
@@ -49,7 +50,6 @@ namespace LeadStatusUpdater
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                await Task.Delay(2000); //to get rates from consumer
                 Log.Information($"Cycle started at: {DateTime.Now}");
                 await _emailPublisher.Start();
                 try
@@ -65,19 +65,13 @@ namespace LeadStatusUpdater
                 finally
                 {
                     await _emailPublisher.Stop();
-                    TimeSpan t = TimeSpan.FromMilliseconds(CountTimeToSleep());
-                    string answer = string.Format("{0:D2}h:{1:D2}m:{2:D2}s:{3:D3}ms",
-                                            t.Hours,
-                                            t.Minutes,
-                                            t.Seconds,
-                                            t.Milliseconds);
-                    Log.Information($"Next cycle in {answer}");
+                    Log.Information($"Next cycle in {GetTimeFromMs(CountTimeToSleep())}");
                     await Task.Delay(CountTimeToSleep(), stoppingToken);
                 }
             }
         }
 
-        public int CountTimeToSleep()
+        private int CountTimeToSleep()
         {
             int sleepTime;
             var nowMiliS = (long)((DateTime.Now.TimeOfDay).TotalMilliseconds);
@@ -94,5 +88,15 @@ namespace LeadStatusUpdater
         //    var act = new TimerCallback(_service.Process);
         //    _timer = new Timer(act, default, 0, _millisecondsWhenLaunch);
         //}
+        private string GetTimeFromMs(int ms)
+        {
+            TimeSpan t = TimeSpan.FromMilliseconds(ms);
+            string time = string.Format("{0:D2}h:{1:D2}m:{2:D2}s:{3:D3}ms",
+                                    t.Hours,
+                                    t.Minutes,
+                                    t.Seconds,
+                                    t.Milliseconds);
+            return time;
+        }
     }
 }
