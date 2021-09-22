@@ -47,6 +47,7 @@ namespace LeadStatusUpdater
                     services.AddTransient<ISetVipService, SetVipService>();
                     services.AddTransient<IRequestsSender, RequestsSender>();
                     services.AddTransient<IConverterService, ConverterService>();
+                    //services.AddTransient<IRabbitMqPublisher, RabbitMqPublisher>();
                     services.AddTransient<RabbitMqPublisher>();
 
                     services.AddMassTransit(x =>
@@ -55,11 +56,11 @@ namespace LeadStatusUpdater
                         x.SetKebabCaseEndpointNameFormatter();
                         x.UsingRabbitMq((context, cfg) =>
                         {
-                            cfg.Host(configuration.GetValue<string>($"{_sectionKey}:{_rabbitHost}"), h =>
-                            {
-                                h.Username(configuration.GetValue<string>($"{_sectionKey}:{_rabbitUsername}"));
-                                h.Password(configuration.GetValue<string>($"{_sectionKey}:{_rabbitPassword}"));
-                            });
+                            //cfg.Host(configuration.GetValue<string>($"{_sectionKey}:{_rabbitHost}"), h =>
+                            //{
+                            //    h.Username(configuration.GetValue<string>($"{_sectionKey}:{_rabbitUsername}"));
+                            //    h.Password(configuration.GetValue<string>($"{_sectionKey}:{_rabbitPassword}"));
+                            //});
                             cfg.ReceiveEndpoint(_queue, e =>
                             {
                                 e.ConfigureConsumer<RatesConsumer>(context);

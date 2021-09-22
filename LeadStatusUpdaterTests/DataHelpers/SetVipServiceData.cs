@@ -255,7 +255,7 @@ namespace LeadStatusUpdaterTests.DataHelpers
                             Date = DateTime.Now,
                             Amount = 1000m,
                             AccountId = 6,
-                            Currency = Currency.EUR.ToString()
+                            Currency = Currency.RUB.ToString()
                         }
                     };
                     break;

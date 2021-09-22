@@ -2,9 +2,7 @@
 using LeadStatusUpdater.Common;
 using LeadStatusUpdater.Models;
 using LeadStatusUpdater.Services;
-using LeadStatusUpdater.Settings;
 using LeadStatusUpdaterTests.DataHelpers;
-using Microsoft.Extensions.Options;
 using Moq;
 using NUnit.Framework;
 using System.Collections.Generic;
@@ -15,6 +13,7 @@ namespace LeadStatusUpdaterTests
     public class SetVipServiceTests
     {
         private Mock<IRequestsSender> _requestsMock = new Mock<IRequestsSender>();
+        private Mock<IRabbitMqPublisher> _rabbitMqPublisherMock = new Mock<IRabbitMqPublisher>();
         
         private SetVipService _sut;
 
@@ -23,9 +22,7 @@ namespace LeadStatusUpdaterTests
         {
             var converter = new ConverterService();
             ConverterService.RatesModel = ConverterServiceData.GetRatesModel();
-            var _iOptionsMock = new Mock<IOptions<AppSettings>>();
-            var publisher = new RabbitMqPublisher(_iOptionsMock.Object);
-            _sut = new SetVipService(_requestsMock.Object, converter, publisher);
+            _sut = new SetVipService(_requestsMock.Object, converter, _rabbitMqPublisherMock.Object);
         }
 
         [TestCaseSource(typeof(SetVipServiceData), nameof(SetVipServiceData.GetDataForCheckLead))]
@@ -42,22 +39,21 @@ namespace LeadStatusUpdaterTests
             Assert.AreEqual(expected, actual);
         }
 
-        [TestCase()]
+        [Test]
         public void ProcessTests_Object_NoContentReturned()
         {
             //When
             var leadsOfFirstLoop = SetVipServiceData.GetLeadsOutputModel();
             var leadsToChangeStatusList = SetVipServiceData.GetLeadsToChangeStatusList();
+            var accountIds= new List<int> { 4, 5, 6};
 
+            _requestsMock.Setup(x => x.GetAdminToken()).Returns(It.IsAny<string>());
             _requestsMock
                 .SetupSequence(x => x.GetRegularAndVipLeads(It.IsAny<int>()))
                 .Returns(leadsOfFirstLoop)
                 .Returns(new List<LeadOutputModel>());
-            _requestsMock
-                .SetupSequence(x => x.GetTransactionsByPeriod(It.IsAny<List<int>>()))
-                .Returns(SetVipServiceData.GetTransactionsByLeadId(4))
-                .Returns(SetVipServiceData.GetTransactionsByLeadId(5))
-                .Returns(SetVipServiceData.GetTransactionsByLeadId(6));
+            accountIds.ForEach( accountId => _requestsMock.Setup(x => x.GetTransactionsByPeriod(new List<int> { accountId}))
+                .Returns(SetVipServiceData.GetTransactionsByLeadId(accountId)));
             _requestsMock
                 .Setup(x => x.ChangeStatus(leadsToChangeStatusList));
 
@@ -65,6 +61,12 @@ namespace LeadStatusUpdaterTests
             _sut.Process(new object());
 
             //Then
+            _requestsMock.Verify(x => x.GetAdminToken(), Times.Once);
+            _requestsMock.Verify(x => x.GetAdminToken(), );
+            _requestsMock.Verify(x => x.GetRegularAndVipLeads(It.IsAny<int>()), Times.Exactly(2));
+            _requestsMock.Verify(x => x.GetRegularAndVipLeads(It.IsAny<int>()), Times.Exactly(2));
+            accountIds.ForEach(accountId => _requestsMock.Verify(x => x.GetTransactionsByPeriod(new List<int> { accountId }), Times.Once));
+            _requestsMock.Verify(x => x.ChangeStatus(leadsToChangeStatusList), Times.Once);
         }
 
 

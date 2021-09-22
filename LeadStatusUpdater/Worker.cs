@@ -37,7 +37,7 @@ namespace LeadStatusUpdater
         {
             var countToSleep = CountTimeToSleep();
             Log.Information($"Will start working through: {countToSleep}");
-            await Task.Delay(countToSleep, cancellationToken);
+            //await Task.Delay(countToSleep, cancellationToken);
 
             Log.Information($"Worker started at: {DateTime.Now}");
             await base.StartAsync(cancellationToken);

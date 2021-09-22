@@ -17,7 +17,7 @@ namespace LeadStatusUpdater.Services
         public static string AdminToken;
         private IRequestsSender _requests;
         private IConverterService _converter;
-        private readonly RabbitMqPublisher _emailPublisher;
+        private readonly IRabbitMqPublisher _emailPublisher;
         private CancellationTokenSource _cancelTokenSource;
         private CancellationToken _cancelToken;
         private readonly DateTime _fromDateCheckBirthday;
@@ -27,7 +27,7 @@ namespace LeadStatusUpdater.Services
 
         public SetVipService(IRequestsSender sender,
             IConverterService converter,
-            RabbitMqPublisher emailPublisher)
+            IRabbitMqPublisher emailPublisher)
         {
             _requests = sender;
             _converter = converter;
