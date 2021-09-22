@@ -149,7 +149,7 @@ namespace LeadStatusUpdater.Services
             return false;
         }
 
-        public async Task<bool> CheckBirthdayCondition(LeadOutputModel lead)
+        private async Task<bool> CheckBirthdayCondition(LeadOutputModel lead)
         {
             var leadBirthDate = Convert.ToDateTime(lead.BirthDate);
 
