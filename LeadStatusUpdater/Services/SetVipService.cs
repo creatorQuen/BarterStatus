@@ -37,7 +37,7 @@ namespace LeadStatusUpdater.Services
             _fromDateCheckBalance = DateTime.Now.AddMonths(-1);
         }
 
-        public async Task Process(object obj)
+        public void Process(object obj)
         {
             AdminToken = _requests.GetAdminToken();
 
