@@ -77,7 +77,6 @@ namespace LeadStatusUpdater.Services
                     leadsToLogAndEmail.AddRange(leads.Where(l => leadsToChangeStatusList.Any(c => l.Id == c.Id)));
 
                     lastLeadId = leads.Last().Id;
-                    
                 }
             }
             while (leads != null && batchCount > 0);

@@ -14,14 +14,14 @@ namespace LeadStatusUpdater.Common
         public RabbitMqPublisher(IOptions<AppSettings> settings)
         {
             _busControl = Bus.Factory.CreateUsingRabbitMq(
-            //    configure: cfg =>
-            //{
-            //    cfg.Host(settings.Value.RabbitMqAddress, h =>
-            //    {
-            //        h.Username(settings.Value.RabbitMqUsername);
-            //        h.Password(settings.Value.RabbitMqPassword);
-            //    });
-            //}
+                configure: cfg =>
+            {
+                //cfg.Host(settings.Value.RabbitMqAddress, h =>
+                //{
+                //    h.Username(settings.Value.RabbitMqUsername);
+                //    h.Password(settings.Value.RabbitMqPassword);
+                //});
+            }
             );
         }
 
