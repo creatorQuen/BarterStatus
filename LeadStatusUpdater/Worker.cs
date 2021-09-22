@@ -35,7 +35,10 @@ namespace LeadStatusUpdater
 
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
-            //await Task.Delay(CountTimeToSleep(), cancellationToken);
+            var countToSleep = CountTimeToSleep();
+            Log.Information($"Will start working through: {countToSleep}");
+            await Task.Delay(countToSleep, cancellationToken);
+
             Log.Information($"Worker started at: {DateTime.Now}");
             await base.StartAsync(cancellationToken);
         }
@@ -50,11 +53,11 @@ namespace LeadStatusUpdater
             while (!stoppingToken.IsCancellationRequested)
             {
                 await Task.Delay(2000); //to get rates from consumer
-                Log.Information($"Cycle started at: {DateTime.Now}");
                 await _emailPublisher.Start();
                 try
                 {
-                    _service.Process(new object());
+                    Log.Information($"Cycle started at: {DateTime.Now}");
+                    SetTimer();
                     Log.Information($"Cycle finished successfully at: {DateTime.Now}");
                 }
                 catch (Exception ex)
@@ -89,10 +92,10 @@ namespace LeadStatusUpdater
             return sleepTime;
         }
 
-        //private void SetTimer()
-        //{
-        //    var act = new TimerCallback(_service.Process);
-        //    _timer = new Timer(act, default, 0, _millisecondsWhenLaunch);
-        //}
+        private void SetTimer()
+        {
+            var act = new TimerCallback(_service.Process);
+            _timer = new Timer(act, default, 0, _millisecondsWhenLaunch);
+        }
     }
 }
