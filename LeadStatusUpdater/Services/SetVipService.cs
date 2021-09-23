@@ -71,7 +71,6 @@ namespace LeadStatusUpdater.Services
                           });
 
                     _requests.ChangeStatus(leadsToChangeStatusList); 
-                    Log.Information($"{leadsToChangeStatusList.Count} leads updated");
 
                     leadsToLogAndEmail.AddRange(leads.Where(l => leadsToChangeStatusList.Any(c => l.Id == c.Id)));
 
@@ -81,6 +80,7 @@ namespace LeadStatusUpdater.Services
             while (leads != null && batchCount > 0);
 
             Log.Information($"{totalLeadsCount} leads were processed.");
+            Log.Information($"{leadsToChangeStatusList.Count} leads were updated.");
 
             leadsToLogAndEmail.
                 AsParallel()
