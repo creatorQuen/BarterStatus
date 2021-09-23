@@ -21,5 +21,6 @@
 
   <ItemGroup>
     <Folder Include="Enum\" />
+    <Folder Include="LogsMyLeads\" />
   </ItemGroup>
 </Project>

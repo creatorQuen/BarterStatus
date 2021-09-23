@@ -17,7 +17,7 @@ namespace LeadStatusUpdater.Services
         public static string AdminToken;
         private IRequestsSender _requests;
         private IConverterService _converter;
-        private readonly RabbitMqPublisher _emailPublisher;
+        private IRabbitMqPublisher _emailPublisher;
         private CancellationTokenSource _cancelTokenSource;
         private CancellationToken _cancelToken;
         private readonly DateTime _fromDateCheckBirthday;
@@ -27,7 +27,7 @@ namespace LeadStatusUpdater.Services
 
         public SetVipService(IRequestsSender sender,
             IConverterService converter,
-            RabbitMqPublisher emailPublisher)
+            IRabbitMqPublisher emailPublisher)
         {
             _requests = sender;
             _converter = converter;
@@ -92,9 +92,9 @@ namespace LeadStatusUpdater.Services
             if (CheckBirthdayCondition(lead).Result == true) return true;
 
             if (ConverterService.RatesModel == null) throw new Exception(LogMessages.RatesNotProvided);
+            var accountIds = (from acc in lead.Accounts select acc.Id).ToList();
             var transactions = _requests
-                                    .GetTransactionsByPeriod((from acc in lead.Accounts select acc.Id)
-                                    .ToList());
+                                    .GetTransactionsByPeriod(accountIds);
             if (transactions == null || transactions.Count == 0) return false;
 
             _cancelTokenSource = new CancellationTokenSource();
@@ -114,7 +114,7 @@ namespace LeadStatusUpdater.Services
             return false;
         }
 
-        public async Task<bool> CheckOperationsCondition(List<TransactionOutputModel> transactions)
+        private async Task<bool> CheckOperationsCondition(List<TransactionOutputModel> transactions)
         {
             if (transactions.
                     Where(t => t.TransactionType == TransactionType.Deposit
@@ -126,7 +126,7 @@ namespace LeadStatusUpdater.Services
             return false;
         }
 
-        public async Task<bool> CheckBalanceCondition(List<TransactionOutputModel> transactions)
+        private async Task<bool> CheckBalanceCondition(List<TransactionOutputModel> transactions)
         {
             decimal sum = 0;
 
@@ -148,7 +148,7 @@ namespace LeadStatusUpdater.Services
             return false;
         }
 
-        public async Task<bool> CheckBirthdayCondition(LeadOutputModel lead)
+        private async Task<bool> CheckBirthdayCondition(LeadOutputModel lead)
         {
             var leadBirthDate = Convert.ToDateTime(lead.BirthDate);
 

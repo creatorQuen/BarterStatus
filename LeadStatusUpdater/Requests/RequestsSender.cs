@@ -18,7 +18,7 @@ namespace LeadStatusUpdater.Requests
         private readonly RequestHelper _requestHelper;
         private readonly IOptions<AppSettings> _options;
         private const int _retryCount = 3;
-        private const int _retryTimeout = 10_000;
+        private const int _retryTimeout = 3000;
 
         public RequestsSender(IOptions<AppSettings> options)
         {

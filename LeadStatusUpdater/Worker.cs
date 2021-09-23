@@ -1,31 +1,25 @@
-using Exchange;
 using LeadStatusUpdater.Common;
 using LeadStatusUpdater.Constants;
-using LeadStatusUpdater.Models;
 using LeadStatusUpdater.Services;
 using LeadStatusUpdater.Settings;
-using MailExchange;
-using MassTransit;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Serilog;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Timers;
 
 namespace LeadStatusUpdater
 {
     public class Worker : BackgroundService
     {
         private readonly ISetVipService _service;
-        private readonly RabbitMqPublisher _emailPublisher;
-        //private Timer _timer;
+        private readonly IRabbitMqPublisher _emailPublisher;
         private readonly int _millisecondsDelay;
         private readonly int _millisecondsWhenLaunch;
 
         public Worker(ISetVipService service,
-            RabbitMqPublisher emailPublisher,
+            IRabbitMqPublisher emailPublisher,
             IOptions<AppSettings> settings)
         {
             _emailPublisher = emailPublisher;
@@ -49,13 +43,13 @@ namespace LeadStatusUpdater
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
+            await Task.Delay(2000);
             while (!stoppingToken.IsCancellationRequested)
             {
                 await _emailPublisher.Start();
                 try
                 {
                     Log.Information($"Cycle started at: {DateTime.Now}");
-                    //SetTimer();
                     _service.Process(new object());
                     Log.Information($"Cycle finished successfully at: {DateTime.Now}");
                 }
@@ -84,12 +78,6 @@ namespace LeadStatusUpdater
 
             return sleepTime;
         }
-
-        //private void SetTimer()
-        //{
-        //    var act = new TimerCallback(_service.Process);
-        //    _timer = new Timer(act, default, 0, _millisecondsDelay);
-        //}
 
         private string GetTimeFromMs(int ms)
         {

@@ -7,7 +7,6 @@ using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System;
 using System.IO;
 
 namespace LeadStatusUpdater
@@ -47,7 +46,7 @@ namespace LeadStatusUpdater
                     services.AddTransient<ISetVipService, SetVipService>();
                     services.AddTransient<IRequestsSender, RequestsSender>();
                     services.AddTransient<IConverterService, ConverterService>();
-                    services.AddTransient<RabbitMqPublisher>();
+                    services.AddTransient<IRabbitMqPublisher, RabbitMqPublisher>();
 
                     services.AddMassTransit(x =>
                     {
