@@ -50,7 +50,6 @@ namespace LeadStatusUpdater.Services
 
             do
             {
-                if (ConverterService.RatesModel == null) throw new Exception(LogMessages.RatesNotProvided);
                 leads = _requests.GetRegularAndVipLeads(lastLeadId);
                 batchCount = leads.Count;
                 totalLeadsCount += batchCount;
@@ -72,7 +71,6 @@ namespace LeadStatusUpdater.Services
                           });
 
                     _requests.ChangeStatus(leadsToChangeStatusList); 
-                    Log.Information($"{leadsToChangeStatusList.Count} leads updated");
 
                     leadsToLogAndEmail.AddRange(leads.Where(l => leadsToChangeStatusList.Any(c => l.Id == c.Id)));
 
@@ -82,6 +80,7 @@ namespace LeadStatusUpdater.Services
             while (leads != null && batchCount > 0);
 
             Log.Information($"{totalLeadsCount} leads were processed.");
+            Log.Information($"{leadsToChangeStatusList.Count} leads were updated.");
 
             leadsToLogAndEmail.
                 AsParallel()
@@ -90,26 +89,26 @@ namespace LeadStatusUpdater.Services
 
         public async Task<bool> CheckOneLead(LeadOutputModel lead)
         {
-            _cancelTokenSource = new CancellationTokenSource();
-            _cancelToken = _cancelTokenSource.Token;
             if (CheckBirthdayCondition(lead).Result == true) return true;
 
-            var tasks = new List<Task<bool>>();
+            if (ConverterService.RatesModel == null) throw new Exception(LogMessages.RatesNotProvided);
             var accountIds = (from acc in lead.Accounts select acc.Id).ToList();
             var transactions = _requests
                                     .GetTransactionsByPeriod(accountIds);
             if (transactions == null || transactions.Count == 0) return false;
 
-            tasks.Add(CheckOperationsCondition(transactions));
-            tasks.Add(CheckBalanceCondition(transactions));
+            _cancelTokenSource = new CancellationTokenSource();
+            _cancelToken = _cancelTokenSource.Token;
+            var tasks = new List<Task<bool>> 
+            {
+                CheckOperationsCondition(transactions),
+                CheckBalanceCondition(transactions)
+            };
 
             while (tasks.Any())
             {
                 var t = await Task.WhenAny(tasks);
-                if (t.Result == true)
-                {
-                    return true;
-                }
+                if (t.Result == true) return true;
                 tasks.Remove(t);
             }
             return false;

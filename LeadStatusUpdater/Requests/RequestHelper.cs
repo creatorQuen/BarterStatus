@@ -1,4 +1,5 @@
 ﻿using RestSharp;
+using System.Net;
 
 namespace LeadStatusUpdater.Requests
 {
@@ -6,7 +7,7 @@ namespace LeadStatusUpdater.Requests
     {
         public IRestRequest CreateRequest(Method httpMethod, string endPoint)
         {
-            //ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
+            ServicePointManager.ServerCertificateValidationCallback += (sender, cert, chain, sslPolicyErrors) => true;
             return new RestRequest(endPoint, httpMethod);
         }
     }

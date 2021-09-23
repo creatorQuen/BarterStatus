@@ -82,7 +82,6 @@ namespace LeadStatusUpdater.Requests
                 }
                 if (response.StatusCode == HttpStatusCode.Unauthorized)
                 {
-                    Log.Warning($"{LogMessages.RequestResult}", endpoint, response.StatusCode);
                     SetVipService.AdminToken = GetAdminToken();
                     i--;
                     continue;

@@ -1,5 +1,4 @@
-﻿
-namespace LeadStatusUpdater.Models
+﻿namespace LeadStatusUpdater.Models
 {
     public class EmailModel
     {
@@ -8,5 +7,6 @@ namespace LeadStatusUpdater.Models
         public string DisplayName { get; set; }
         public string MailAddresses { get; set; }
         public bool IsBodyHtml { get; set; }
+        public string Base64String { get; set; }
     }
 }

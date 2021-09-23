@@ -35,7 +35,8 @@ namespace LeadStatusUpdater.Common
                 Body = message.Body,
                 MailAddresses = message.MailAddresses,
                 DisplayName = message.DisplayName,
-                IsBodyHtml = message.IsBodyHtml
+                IsBodyHtml = message.IsBodyHtml,
+                Base64String = ""
             });
         }
     }
