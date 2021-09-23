@@ -17,7 +17,7 @@ namespace LeadStatusUpdater.Services
         public static string AdminToken;
         private IRequestsSender _requests;
         private IConverterService _converter;
-        private readonly IRabbitMqPublisher _emailPublisher;
+        private IRabbitMqPublisher _emailPublisher;
         private CancellationTokenSource _cancelTokenSource;
         private CancellationToken _cancelToken;
         private readonly DateTime _fromDateCheckBirthday;

@@ -62,11 +62,10 @@ namespace LeadStatusUpdaterTests
 
             //Then
             _requestsMock.Verify(x => x.GetAdminToken(), Times.Once);
-            _requestsMock.Verify(x => x.GetAdminToken(), );
             _requestsMock.Verify(x => x.GetRegularAndVipLeads(It.IsAny<int>()), Times.Exactly(2));
             _requestsMock.Verify(x => x.GetRegularAndVipLeads(It.IsAny<int>()), Times.Exactly(2));
             accountIds.ForEach(accountId => _requestsMock.Verify(x => x.GetTransactionsByPeriod(new List<int> { accountId }), Times.Once));
-            _requestsMock.Verify(x => x.ChangeStatus(leadsToChangeStatusList), Times.Once);
+            _requestsMock.Verify(x => x.ChangeStatus(leadsToChangeStatusList), Times.AtMostOnce());
         }
 
 

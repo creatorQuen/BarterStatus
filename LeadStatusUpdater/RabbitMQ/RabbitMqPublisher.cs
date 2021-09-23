@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace LeadStatusUpdater.Common
 {
-    public class RabbitMqPublisher
+    public class RabbitMqPublisher : IRabbitMqPublisher
     {
         IBusControl _busControl;
         
