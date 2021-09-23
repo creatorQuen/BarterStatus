@@ -50,7 +50,6 @@ namespace LeadStatusUpdater.Services
 
             do
             {
-                if (ConverterService.RatesModel == null) throw new Exception(LogMessages.RatesNotProvided);
                 leads = _requests.GetRegularAndVipLeads(lastLeadId);
                 batchCount = leads.Count;
                 totalLeadsCount += batchCount;
@@ -90,26 +89,26 @@ namespace LeadStatusUpdater.Services
 
         public async Task<bool> CheckOneLead(LeadOutputModel lead)
         {
-            _cancelTokenSource = new CancellationTokenSource();
-            _cancelToken = _cancelTokenSource.Token;
             if (CheckBirthdayCondition(lead).Result == true) return true;
 
-            var tasks = new List<Task<bool>>();
+            if (ConverterService.RatesModel == null) throw new Exception(LogMessages.RatesNotProvided);
             var transactions = _requests
                                     .GetTransactionsByPeriod((from acc in lead.Accounts select acc.Id)
                                     .ToList());
             if (transactions == null || transactions.Count == 0) return false;
 
-            tasks.Add(CheckOperationsCondition(transactions));
-            tasks.Add(CheckBalanceCondition(transactions));
+            _cancelTokenSource = new CancellationTokenSource();
+            _cancelToken = _cancelTokenSource.Token;
+            var tasks = new List<Task<bool>> 
+            {
+                CheckOperationsCondition(transactions),
+                CheckBalanceCondition(transactions)
+            };
 
             while (tasks.Any())
             {
                 var t = await Task.WhenAny(tasks);
-                if (t.Result == true)
-                {
-                    return true;
-                }
+                if (t.Result == true) return true;
                 tasks.Remove(t);
             }
             return false;

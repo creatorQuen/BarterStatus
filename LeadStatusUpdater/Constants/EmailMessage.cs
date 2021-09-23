@@ -1,5 +1,7 @@
 ﻿using LeadStatusUpdater.Models;
 using System;
+using System.Collections.Generic;
+using System.Net.Mail;
 
 namespace LeadStatusUpdater.Constants
 {
@@ -44,7 +46,7 @@ namespace LeadStatusUpdater.Constants
                 Subject = EmailMessage.CycleFailedSubject,
                 Body = string.Format(EmailMessage.CycleFailedBody, exception),
                 DisplayName = "StatusUpdater",
-                MailAddresses = "merymal2696@gmail.com" 
+                MailAddresses = "merymal2696@gmail.com"
             };
         }
     }
